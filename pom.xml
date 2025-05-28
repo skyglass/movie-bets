@@ -29,6 +29,7 @@
     <modules>
         <module>common-domain</module>
         <module>customer-service</module>
+        <module>movie-service</module>
         <module>market-service</module>
         <module>bet-service</module>
         <module>gateway-service</module>
