@@ -12,39 +12,39 @@ export const moviesApi = {
 }
 
 function getMovies() {
-  return instance.get('/api/movies')
+  return instance.get('/api/movie')
 }
 
 function getMovie(imdbId) {
-  return instance.get(`/api/movies/${imdbId}`)
+  return instance.get(`/api/movie/${imdbId}`)
 }
 
 function saveMovie(movie, token) {
-  return instance.post('/api/movies', movie, {
+  return instance.post('/api/movie', movie, {
     headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 function deleteMovie(imdbId, token) {
-  return instance.delete(`/api/movies/${imdbId}`, {
+  return instance.delete(`/api/movie/${imdbId}`, {
     headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 function addMovieComment(imdbId, comment, token) {
-  return instance.post(`/api/movies/${imdbId}/comments`, comment, {
+  return instance.post(`/api/movie/${imdbId}/comments`, comment, {
     headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 function getUserExtrasMe(token) {
-  return instance.get(`/api/userextras/me`, {
+  return instance.get(`/api/movie/userextras/me`, {
     headers: { 'Authorization': bearerAuth(token) }
   })
 }
 
 function saveUserExtrasMe(token, userExtra) {
-  return instance.post(`/api/userextras/me`, userExtra, {
+  return instance.post(`/api/movie/userextras/me`, userExtra, {
     headers: { 'Authorization': bearerAuth(token) }
   })
 }

@@ -24,6 +24,13 @@ spec:
                 name: moviebets-keycloak
                 port:
                   number: 8080
+          - path: /movie-ui/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: movie-ui
+                port:
+                  number: 3001
           - path: /?(.*)
             pathType: ImplementationSpecific
             backend:

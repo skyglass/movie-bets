@@ -86,6 +86,15 @@ spring:
               args:
                 name: moviebetsCircuitBreaker
                 fallbackUri: forward:/moviebets-fallback
+        - id: movie
+          uri: ${MOVIE_SERVICE_URL:http://localhost:9006}
+          predicates:
+            - Path=/api/movie/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: movieCircuitBreaker
+                fallbackUri: forward:/moviebets-fallback
 
   data:
     redis:
@@ -182,6 +191,8 @@ springdoc:
       # - url: /v3/api-docs
       #   name: API Gateway Service
       #   primaryName: API Gateway Service
+      - url: /api/movie/v3/api-docs
+        name: Movie Service
       - url: /api/customer/v3/api-docs
         name: Customer Service
       - url: /api/market/v3/api-docs

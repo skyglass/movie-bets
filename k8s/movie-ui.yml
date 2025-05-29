@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movie-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: movie-ui
+  template:
+    metadata:
+      labels:
+        app: movie-ui
+    spec:
+      containers:
+        - name: movie-ui
+          image: $CONTAINER_REGISTRY/movie-ui:$VERSION
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: API_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: base-url-config
+                  key: API_BASE_URL
+            - name: KEYCLOAK_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: base-url-config
+                  key: KEYCLOAK_BASE_URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movie-ui
+spec:
+  selector:
+    app: movie-ui
+  ports:
+    - name: movie-ui
+      protocol: TCP
+      port: 3001
+      targetPort: 3001
