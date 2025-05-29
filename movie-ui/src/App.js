@@ -15,9 +15,9 @@ import { config } from './Constants'
 
 function App() {
   const keycloak = new Keycloak({
-    url: `${config.url.KEYCLOAK_BASE_URL}`,
-    realm: "company-services",
-    clientId: "movies-app"
+    url: `${config.keycloak.BASE_URL}`,
+    realm: `${config.keycloak.REALM}`,
+    clientId: `${config.keycloak.CLIENT_ID}`
   })
   const initOptions = { pkceMethod: 'S256' }
 

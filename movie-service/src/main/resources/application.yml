@@ -29,7 +29,7 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://localhost:27017/moviesdb
+      uri: mongodb://moviebets-mongodb:27017/moviesdb
 
   keycloak:
     server-url: http://localhost/keycloak

@@ -28,7 +28,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: moviebets-postgres-depl
+  name: moviebets-postgres
 spec:
   replicas: 1
   selector:
@@ -65,7 +65,7 @@ spec:
               value: "dbpass"
             - name: MARKET_DB_NAME
               value: "marketdb"
-          image: $CONTAINER_REGISTRY/moviebets-postgres:15.8
+          image: $CONTAINER_REGISTRY/moviebets-postgres:17.2
           name: moviebets-postgres
           imagePullPolicy: IfNotPresent
           ports:
@@ -91,4 +91,4 @@ spec:
     - name: "5432"
       port: 5432
       targetPort: 5432
-  type: LoadBalancer
+  type: ClusterIP

@@ -84,7 +84,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: moviebetsCircuitBreaker
+                name: betCircuitBreaker
                 fallbackUri: forward:/moviebets-fallback
         - id: movie
           uri: ${MOVIE_SERVICE_URL:http://localhost:9006}

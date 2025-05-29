@@ -16,6 +16,8 @@ spec:
         - name: movie-ui
           image: $CONTAINER_REGISTRY/movie-ui:$VERSION
           imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4200
           env:
             - name: API_BASE_URL
               valueFrom:
@@ -38,5 +40,5 @@ spec:
   ports:
     - name: movie-ui
       protocol: TCP
-      port: 3001
-      targetPort: 3001
+      port: 4200
+      targetPort: 4200

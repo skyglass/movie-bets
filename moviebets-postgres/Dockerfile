@@ -1,4 +1,4 @@
-FROM debezium/postgres:15
+FROM postgres:17.2
 
 # Set environment variables
 ENV TZ=Europe/Amsterdam

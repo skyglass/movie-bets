@@ -24,11 +24,11 @@ spec:
           image: $CONTAINER_REGISTRY/movie-service:$VERSION
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 9004
-            - containerPort: 8004
+            - containerPort: 9006
+            - containerPort: 8006
           env:
             - name: SERVER_PORT
-              value: "9004"
+              value: "9006"
             - name: BPL_JVM_THREAD_COUNT
               value: "50"
             - name: BPL_DEBUG_ENABLED

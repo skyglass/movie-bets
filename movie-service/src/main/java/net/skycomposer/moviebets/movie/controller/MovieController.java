@@ -3,19 +3,19 @@ package net.skycomposer.moviebets.movie.controller;
 import java.security.Principal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import net.skycomposer.moviebets.common.dto.movie.AddCommentRequest;
-import net.skycomposer.moviebets.common.dto.movie.CreateMovieRequest;
-import net.skycomposer.moviebets.common.dto.movie.MovieDto;
-import net.skycomposer.moviebets.common.dto.movie.UpdateMovieRequest;
+import net.skycomposer.moviebets.common.dto.movie.*;
 import net.skycomposer.moviebets.movie.dao.entity.Movie;
+import net.skycomposer.moviebets.movie.dao.entity.UserExtra;
 import net.skycomposer.moviebets.movie.mapper.MovieDtoMapper;
 import net.skycomposer.moviebets.movie.service.MovieService;
+import net.skycomposer.moviebets.movie.service.UserExtraService;
 
 @RequiredArgsConstructor
 @RestController
@@ -23,6 +23,7 @@ public class MovieController {
 
     private final MovieService movieService;
     private final MovieDtoMapper movieMapper;
+    private final UserExtraService userExtraService;
 
     @GetMapping
     public List<MovieDto> getMovies() {
@@ -68,5 +69,19 @@ public class MovieController {
         movie.getComments().addFirst(comment);
         movie = movieService.saveMovie(movie);
         return movieMapper.toMovieDto(movie);
+    }
+
+    @GetMapping("/userextras/me")
+    public UserExtra getUserExtra(Principal principal) {
+        return userExtraService.validateAndGetUserExtra(principal.getName());
+    }
+
+    @PostMapping("/userextras/me")
+    public UserExtra saveUserExtra(@Valid @RequestBody UserExtraRequest updateUserExtraRequest,
+                                   Principal principal) {
+        Optional<UserExtra> userExtraOptional = userExtraService.getUserExtra(principal.getName());
+        UserExtra userExtra = userExtraOptional.orElseGet(() -> new UserExtra(principal.getName()));
+        userExtra.setAvatar(updateUserExtraRequest.getAvatar());
+        return userExtraService.saveUserExtra(userExtra);
     }
 }

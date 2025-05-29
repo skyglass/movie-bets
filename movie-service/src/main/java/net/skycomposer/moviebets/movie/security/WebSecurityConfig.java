@@ -23,9 +23,9 @@ public class WebSecurityConfig {
 
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
 
-                        .requestMatchers(HttpMethod.GET,"/", "/**").hasAnyRole(MOVIEBETS_USER, MOVIEBETS_MANAGER)
+                        .requestMatchers("/userextras/**").hasAnyRole(MOVIEBETS_USER, MOVIEBETS_MANAGER)
 
-                        .requestMatchers(HttpMethod.POST,"/user").hasAnyRole(MOVIEBETS_USER, MOVIEBETS_MANAGER)
+                        .requestMatchers(HttpMethod.GET,"/", "/**").hasAnyRole(MOVIEBETS_USER, MOVIEBETS_MANAGER)
 
                         .requestMatchers("/", "/**").hasRole(MOVIEBETS_MANAGER)
 

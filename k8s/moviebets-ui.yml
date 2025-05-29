@@ -15,7 +15,9 @@ spec:
       containers:
         - name: moviebets-ui
           image: $CONTAINER_REGISTRY/moviebets-ui:$VERSION
-          imagePullPolicy: IfNotPresent    
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
           env:
             - name: NEXT_PUBLIC_BASE_URL
               valueFrom:
