@@ -37,4 +37,4 @@ spec:
               service:
                 name: movie-ui
                 port:
-                  number: 4200
+                  number: 3000

@@ -34,7 +34,7 @@ spec:
             - name: BPL_DEBUG_ENABLED
               value: "true"
             - name: BPL_DEBUG_PORT
-              value: "8004"
+              value: "8006"
             - name: SPRING_KEYCLOAK_SERVER_URL
               value: "http://moviebets-keycloak:8080/keycloak"
             - name: SPRING_KEYCLOAK_SERVER_EXTERNAL_URL

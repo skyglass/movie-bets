@@ -1,10 +1,7 @@
-# build environment
-FROM node:19.6.0-alpine as build
+FROM node:alpine
+
 WORKDIR /app
-ENV PATH /app/node_modules/.bin:$PATH
-COPY package.json ./
-COPY package-lock.json ./
+COPY package.json .
 RUN npm install
-COPY . ./
-EXPOSE 4200
-RUN npm start
+COPY . .
+CMD ["npm", "start"]

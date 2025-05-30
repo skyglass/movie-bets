@@ -11,11 +11,15 @@ fi
 
 set -u # or set -o nounset
 : "$BASE_URL"
+: "$NEXT_PUBLIC_BASE_URL"
 : "$API_BASE_URL"
 : "$KEYCLOAK_BASE_URL"
+: "$OMDB_API_KEY"
 
 kubectl delete configmap base-url-config
-kubectl create configmap base-url-config --from-literal=BASE_URL=$BASE_URL --from-literal=API_BASE_URL=$API_BASE_URL --from-literal=KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
+kubectl delete secret moviebets-secrets
+kubectl create configmap base-url-config --from-literal=BASE_URL=$BASE_URL --from-literal=NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL --from-literal=API_BASE_URL=$API_BASE_URL --from-literal=KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
+kubectl create secret generic moviebets-secrets --from-literal=OMDB_API_KEY=$OMDB_API_KEY
 
 kubectl apply -f 'https://strimzi.io/install/latest?namespace=default'
 

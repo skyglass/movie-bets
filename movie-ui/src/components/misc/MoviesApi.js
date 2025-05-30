@@ -12,7 +12,7 @@ export const moviesApi = {
 }
 
 function getMovies() {
-  return instance.get('/api/movie')
+  return instance.get('/api/movie/')
 }
 
 function getMovie(imdbId) {
@@ -20,7 +20,7 @@ function getMovie(imdbId) {
 }
 
 function saveMovie(movie, token) {
-  return instance.post('/api/movie', movie, {
+  return instance.post('/api/movie/', movie, {
     headers: { 'Authorization': bearerAuth(token) }
   })
 }
@@ -52,7 +52,7 @@ function saveUserExtrasMe(token, userExtra) {
 // -- Axios
 
 const instance = axios.create({
-  baseURL: config.url.API_BASE_URL
+  baseURL: config.url.BASE_URL
 })
 
 instance.interceptors.response.use(response => {
