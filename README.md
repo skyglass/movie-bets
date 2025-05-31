@@ -128,12 +128,11 @@
 3. create `.env.local` file in `env` folder and provide the following parameters:
 
 ```
-CONTAINER_REGISTRY="moviebets.azurecr.io"
+CONTAINER_REGISTRY="ghcr.io"
 DOCKER_FILE_NAME="Dockerfile"
 DOCKER_PUSH="false"
 VERSION="latest"
 BASE_URL="http://ingress-nginx-controller.ingress-nginx.svc.cluster.local"
-API_BASE_URL="http://ingress-nginx-controller.ingress-nginx.svc.cluster.local/api"
 KEYCLOAK_BASE_URL="http://localhost/keycloak"
 ```
 
@@ -204,18 +203,17 @@ docker login {login_server}
 8. In `env` folder create `.env.prod` file and set the following environment variables:
 
 ```
-CONTAINER_REGISTRY="moviebets.azurecr.io"  (provide your own globally unique container registry)
+CONTAINER_REGISTRY="ghcr.io"
 DOCKER_FILE_NAME="Dockerfile"
 DOCKER_PUSH="true"
 VERSION="latest"
 BASE_URL="https://skycomposer.net" (provide your own domain name, see `Step-05` and notes below for more details)
-API_BASE_URL="https://skycomposer.net/api"
 KEYCLOAK_BASE_URL="https://skycomposer.net/keycloak"
 ```
 
-- Make sure you set your own values for CONTAINER_REGISTRY, BASE_URL, API_BASE_URL and KEYCLOAK_BASE_URL (replace `skycomposer.net` with the name of your domain)
+- Make sure you set your own values for CONTAINER_REGISTRY, BASE_URL and KEYCLOAK_BASE_URL (replace `skycomposer.net` with the name of your domain)
 
-9. Register your domain and enable TLS on AKS Ingress with Lestencrypt: https://medium.com/@jainchirag8001/tls-on-aks-ingress-with-letsencrypt-f42d65725a3
+9. Register your domain and enable TLS on AKS Ingress with Letsencrypt: https://medium.com/@jainchirag8001/tls-on-aks-ingress-with-letsencrypt-f42d65725a3
 - Make sure you provide your email for CA cluster issuer in `k8s/cert/cluser-issuer.yml` Kubernetes resource (see more details in the article)
 - You can find production Ingress Kubernetes Resource in `k8s/prod/ingress-srv.yaml`. This resource will be applied with `sh skaffold-prod.sh` script. Make sure that you replaced `skycomposer.net` with your registered domain name
 - When you run `sh skaffold-prod.sh`, you will also install ingress controller and letsencrypt kubernetes resources, described in the article, see the details in `scripts/prod/prepare-k8s.sh` file

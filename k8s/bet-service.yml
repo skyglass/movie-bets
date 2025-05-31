@@ -19,6 +19,8 @@ spec:
       labels:
         app: bet
     spec:
+      imagePullSecrets:
+      - name: image-pull-secret
       containers:
       - name: bet
         image: $CONTAINER_REGISTRY/bet-service:$VERSION

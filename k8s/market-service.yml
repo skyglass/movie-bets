@@ -19,6 +19,8 @@ spec:
       labels:
         app: market
     spec:
+      imagePullSecrets:
+        - name: image-pull-secret
       containers:
       - name: market
         image: $CONTAINER_REGISTRY/market-service:$VERSION

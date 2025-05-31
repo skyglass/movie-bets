@@ -39,6 +39,8 @@ spec:
       labels:
         app: moviebets-postgres
     spec:
+      imagePullSecrets:
+        - name: image-pull-secret
       containers:
         - env:
             - name: POSTGRES_USER

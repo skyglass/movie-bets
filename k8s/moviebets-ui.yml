@@ -12,6 +12,8 @@ spec:
       labels:
         app: moviebets-ui
     spec:
+      imagePullSecrets:
+        - name: image-pull-secret
       containers:
         - name: moviebets-ui
           image: $CONTAINER_REGISTRY/moviebets-ui:$VERSION
@@ -19,11 +21,11 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - name: NEXT_PUBLIC_BASE_URL
+            - name: NEXT_PUBLIC_SERVER_SIDE_BASE_URL
               valueFrom:
                 configMapKeyRef:
                   name: base-url-config
-                  key: NEXT_PUBLIC_BASE_URL
+                  key: SERVER_SIDE_BASE_URL
             - name: NEXT_PUBLIC_KEYCLOAK_BASE_URL
               valueFrom:
                 configMapKeyRef:

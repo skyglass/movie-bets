@@ -12,6 +12,8 @@ spec:
       labels:
         app: movie-ui
     spec:
+      imagePullSecrets:
+        - name: image-pull-secret
       containers:
         - name: movie-ui
           image: $CONTAINER_REGISTRY/movie-ui:$VERSION

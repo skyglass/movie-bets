@@ -19,6 +19,8 @@ spec:
       labels:
         app: customer
     spec:
+      imagePullSecrets:
+        - name: image-pull-secret
       containers:
       - name: customer
         image: $CONTAINER_REGISTRY/customer-service:$VERSION

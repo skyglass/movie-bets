@@ -30,7 +30,7 @@ override.tf.json
 .DS_Store
 .vscode
 .terraform.lock.hcl
-terraform.auto.tfvars
+backup/terraform.auto.tfvars
 **/volumes/**
 **/kafka-client-storage/**
 /.idea/**

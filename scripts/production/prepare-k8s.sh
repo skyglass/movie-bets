@@ -11,15 +11,21 @@ fi
 
 set -u # or set -o nounset
 : "$BASE_URL"
-: "$NEXT_PUBLIC_BASE_URL"
-: "$API_BASE_URL"
+: "$SERVER_SIDE_BASE_URL"
 : "$KEYCLOAK_BASE_URL"
 : "$OMDB_API_KEY"
+: "$GITHUB_USERNAME"
+: "$GITHUB_TOKEN"
 
 kubectl delete configmap base-url-config
 kubectl delete secret moviebets-secrets
-kubectl create configmap base-url-config --from-literal=BASE_URL=$BASE_URL --from-literal=NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL --from-literal=API_BASE_URL=$API_BASE_URL --from-literal=KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
+kubectl create configmap base-url-config --from-literal=BASE_URL=$BASE_URL --from-literal=SERVER_SIDE_BASE_URL=$SERVER_SIDE_BASE_URL --from-literal=KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
 kubectl create secret generic moviebets-secrets --from-literal=OMDB_API_KEY=$OMDB_API_KEY
+
+kubectl create secret docker-registry image-pull-secret \
+  --docker-server=ghcr.io \
+  --docker-username=$GITHUB_USERNAME \
+  --docker-password=$GITHUB_TOKEN
 
 kubectl apply -f 'https://strimzi.io/install/latest?namespace=default'
 
@@ -56,9 +62,6 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 helm install cert-manager jetstack/cert-manager \
   --namespace public-ingress \
   --version v1.11.0
-
-# Make sure you set your own email, before applying this manifest:
-kubectl apply -f './k8s/cert/cluster-issuer.yml' --namespace public-ingress
 
 # Temporary directory for the processed manifests
 GENERATED_DIR=./k8s/generated

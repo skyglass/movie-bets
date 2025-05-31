@@ -1,6 +1,6 @@
 export const config = {
   url: {
-    BASE_URL: 'http://localhost',
+    BASE_URL: process.env.REACT_APP_BASE_URL,
     OMDB_BASE_URL: 'https://www.omdbapi.com',
     AVATARS_DICEBEAR_URL: 'https://api.dicebear.com/6.x'
   },
