@@ -4,13 +4,16 @@ metadata:
   name: moviebets-mongodb-pv
 spec:
   capacity:
-    storage: 10Gi  # Adjust storage size as needed
+    storage: 10Gi
+  volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual  # Use manual storage class for explicit PV binding
-  hostPath:
-    path: "/mnt/data/mongodb"  # This path is on the host node
+  storageClassName: manual
+  awsElasticBlockStore:
+    volumeID: vol-0c320654b03ec1d95
+    fsType: ext4
+
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -19,10 +22,10 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: manual
   resources:
     requests:
       storage: 10Gi
-  storageClassName: manual  # Match the manual storage class with the PV
 
 ---
 apiVersion: apps/v1
@@ -39,16 +42,53 @@ spec:
       labels:
         app: moviebets-mongodb
     spec:
+      initContainers:
+        - name: format-and-resize-filesystem
+          image: alpine
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache e2fsprogs && \
+              if ! blkid /data/db >/dev/null 2>&1; then
+                echo "Filesystem not found, formatting..."
+                mkfs.ext4 /data/db || echo "Formatting failed"
+              else
+                echo "Filesystem exists, skipping format"
+              fi && \
+              resize2fs /data/db || echo "Resize failed or not needed"
+          volumeMounts:
+            - name: mongodb-storage
+              mountPath: /data/db
       containers:
-          - name: moviebets-mongodb
-            image: mongo:8.0.5
-            imagePullPolicy: IfNotPresent
-            ports:
-              - containerPort: 27017
-            volumeMounts:
-              - name: mongodb-storage
-                mountPath: /data/db
-            resources: {}
+        - name: moviebets-mongodb
+          image: mongo:8.0.5
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongodb-storage
+              mountPath: /data/db
+          resources: {}
+          readinessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            exec:
+              command:
+                - mongo
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 20
       restartPolicy: Always
       volumes:
         - name: mongodb-storage

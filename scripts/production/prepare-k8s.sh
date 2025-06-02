@@ -11,7 +11,7 @@ fi
 
 set -u # or set -o nounset
 : "$BASE_URL"
-: "$SERVER_SIDE_BASE_URL"
+: "$NEXT_PUBLIC_BASE_URL"
 : "$KEYCLOAK_BASE_URL"
 : "$OMDB_API_KEY"
 : "$GITHUB_USERNAME"
@@ -19,7 +19,7 @@ set -u # or set -o nounset
 
 kubectl delete configmap base-url-config
 kubectl delete secret moviebets-secrets
-kubectl create configmap base-url-config --from-literal=BASE_URL=$BASE_URL --from-literal=SERVER_SIDE_BASE_URL=$SERVER_SIDE_BASE_URL --from-literal=KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
+kubectl create configmap base-url-config --from-literal=BASE_URL=$BASE_URL --from-literal=NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL --from-literal=KEYCLOAK_BASE_URL=$KEYCLOAK_BASE_URL
 kubectl create secret generic moviebets-secrets --from-literal=OMDB_API_KEY=$OMDB_API_KEY
 
 kubectl create secret docker-registry image-pull-secret \

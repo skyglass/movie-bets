@@ -21,11 +21,11 @@ spec:
           ports:
             - containerPort: 3000
           env:
-            - name: NEXT_PUBLIC_SERVER_SIDE_BASE_URL
+            - name: NEXT_PUBLIC_BASE_URL
               valueFrom:
                 configMapKeyRef:
                   name: base-url-config
-                  key: SERVER_SIDE_BASE_URL
+                  key: NEXT_PUBLIC_BASE_URL
             - name: NEXT_PUBLIC_KEYCLOAK_BASE_URL
               valueFrom:
                 configMapKeyRef:

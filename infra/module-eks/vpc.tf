@@ -13,15 +13,15 @@ resource "aws_vpc" "sandbox" {
 
 // 2 Public Subnets
 resource "aws_subnet" "public_subnets" {
+  count = 1  # Only one subnet
+
   vpc_id                  = aws_vpc.sandbox.id
-  cidr_block              = "10.1.${count.index * 2 + 1}.0/24"
-  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
+  cidr_block              = "10.1.${count.index * 2 + 1}.0/24"  # Evaluates to 10.1.1.0/24 for count.index=0
+  availability_zone       = "eu-central-1a"                    # Fixed AZ here
   map_public_ip_on_launch = true
 
-  count = var.public_subnets_count
-
   tags = {
-    Name   = "public_10.1.${count.index * 2 + 1}.0_${element(data.aws_availability_zones.available.names, count.index)}"
+    Name   = "public_10.1.${count.index * 2 + 1}.0_eu-central-1a"
     Author = var.author
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/elb" = "1"
