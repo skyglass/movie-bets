@@ -4,14 +4,14 @@ metadata:
   name: moviebets-mongodb-pv
 spec:
   capacity:
-    storage: 10Gi
+    storage: 20Gi
   volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   awsElasticBlockStore:
-    volumeID: vol-0c320654b03ec1d95
+    volumeID: $MOVIEBETS_MONGODB_VOLUME_ID
     fsType: ext4
 
 ---
@@ -25,14 +25,15 @@ spec:
   storageClassName: manual
   resources:
     requests:
-      storage: 10Gi
+      storage: 20Gi
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: moviebets-mongodb
 spec:
+  serviceName: moviebets-mongodb
   replicas: 1
   selector:
     matchLabels:
@@ -42,6 +43,15 @@ spec:
       labels:
         app: moviebets-mongodb
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: topology.kubernetes.io/zone
+                    operator: In
+                    values:
+                      - eu-central-1b
       initContainers:
         - name: format-and-resize-filesystem
           image: alpine
@@ -73,9 +83,9 @@ spec:
           readinessProbe:
             exec:
               command:
-                - mongo
-                - --eval
-                - "db.adminCommand('ping')"
+                - sh
+                - -c
+                - "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
             initialDelaySeconds: 15
             timeoutSeconds: 5
             periodSeconds: 10
@@ -83,9 +93,9 @@ spec:
           livenessProbe:
             exec:
               command:
-                - mongo
-                - --eval
-                - "db.adminCommand('ping')"
+                - sh
+                - -c
+                - "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
             initialDelaySeconds: 30
             timeoutSeconds: 5
             periodSeconds: 20
@@ -94,6 +104,7 @@ spec:
         - name: mongodb-storage
           persistentVolumeClaim:
             claimName: moviebets-mongodb-pvc
+
 ---
 apiVersion: v1
 kind: Service

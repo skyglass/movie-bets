@@ -4,15 +4,13 @@ metadata:
   name: moviebets-postgres-pv
 spec:
   capacity:
-    storage: 10Gi
-  volumeMode: Filesystem
+    storage: 10Gi  # Adjust storage size as needed
   accessModes:
     - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual
-  awsElasticBlockStore:
-    volumeID: vol-06b9132eaa8482374
-    fsType: ext4
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual  # Use manual storage class for explicit PV binding
+  hostPath:
+    path: "/mnt/data/postgresql"  # This path is on the host node
 
 ---
 apiVersion: v1
@@ -22,17 +20,18 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: manual
   resources:
     requests:
       storage: 10Gi
+  storageClassName: manual  # Match the manual storage class with the PV
 
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: moviebets-postgres
 spec:
+  serviceName: moviebets-postgres
   replicas: 1
   selector:
     matchLabels:
@@ -42,27 +41,6 @@ spec:
       labels:
         app: moviebets-postgres
     spec:
-      imagePullSecrets:
-        - name: image-pull-secret
-      initContainers:
-        - name: format-and-resize-filesystem
-          image: alpine
-          command:
-            - sh
-            - -c
-            - |
-              apk add --no-cache e2fsprogs && \
-              # Check if /var/lib/postgresql/data is already formatted
-              if ! blkid /var/lib/postgresql/data >/dev/null 2>&1; then
-                echo "Filesystem not found, formatting..."
-                mkfs.ext4 /var/lib/postgresql/data || echo "Formatting failed"
-              else
-                echo "Filesystem exists, skipping format"
-              fi && \
-              resize2fs /var/lib/postgresql/data || echo "Resize failed or not needed"
-          volumeMounts:
-            - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
       containers:
         - env:
             - name: POSTGRES_USER
@@ -91,7 +69,7 @@ spec:
               value: "dbpass"
             - name: MARKET_DB_NAME
               value: "marketdb"
-          image: ghcr.io/skyglass/movie-bets/moviebets-postgres:17.2
+          image: $CONTAINER_REGISTRY/moviebets-postgres:$VERSION
           name: moviebets-postgres
           imagePullPolicy: IfNotPresent
           ports:
@@ -125,6 +103,7 @@ spec:
         - name: postgres-storage
           persistentVolumeClaim:
             claimName: moviebets-postgres-pvc
+
 ---
 apiVersion: v1
 kind: Service
@@ -137,4 +116,4 @@ spec:
     - name: "5432"
       port: 5432
       targetPort: 5432
-  type: ClusterIP
+  type: LoadBalancer

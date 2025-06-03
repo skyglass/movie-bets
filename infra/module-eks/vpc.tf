@@ -11,17 +11,21 @@ resource "aws_vpc" "sandbox" {
 
 }
 
-// 2 Public Subnets
+# Define availability zones explicitly
+locals {
+  availability_zones = ["eu-central-1a", "eu-central-1b"]
+}
+
 resource "aws_subnet" "public_subnets" {
-  count = 1  # Only one subnet
+  count = 2
 
   vpc_id                  = aws_vpc.sandbox.id
-  cidr_block              = "10.1.${count.index * 2 + 1}.0/24"  # Evaluates to 10.1.1.0/24 for count.index=0
-  availability_zone       = "eu-central-1a"                    # Fixed AZ here
+  cidr_block              = "10.1.${count.index * 2 + 1}.0/24"
+  availability_zone       = local.availability_zones[count.index]
   map_public_ip_on_launch = true
 
   tags = {
-    Name   = "public_10.1.${count.index * 2 + 1}.0_eu-central-1a"
+    Name = "public_10.1.${count.index * 2 + 1}.0_${local.availability_zones[count.index]}"
     Author = var.author
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/elb" = "1"

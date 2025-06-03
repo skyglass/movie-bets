@@ -1,50 +1,59 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: keycloak-postgres-pv
+  name: moviebets-postgres-pv
 spec:
   capacity:
-    storage: 10Gi
+    storage: 20Gi
   volumeMode: Filesystem
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   awsElasticBlockStore:
-    volumeID: vol-0eded0afab85dc086
+    volumeID: $MOVIEBETS_POSTGRES_VOLUME_ID
     fsType: ext4
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: keycloak-postgres-pvc
+  name: moviebets-postgres-pvc
 spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: manual
   resources:
     requests:
-      storage: 10Gi
+      storage: 20Gi
 
 ---
-
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: keycloak-postgres
+  name: moviebets-postgres
 spec:
+  serviceName: moviebets-postgres
   replicas: 1
   selector:
     matchLabels:
-      app: keycloak-postgres
-  strategy:
-    type: Recreate
+      app: moviebets-postgres
   template:
     metadata:
       labels:
-        app: keycloak-postgres
+        app: moviebets-postgres
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: topology.kubernetes.io/zone
+                    operator: In
+                    values:
+                      - eu-central-1a
+      imagePullSecrets:
+        - name: image-pull-secret
       initContainers:
         - name: format-and-resize-filesystem
           image: alpine
@@ -65,21 +74,41 @@ spec:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
       containers:
-        - name: keycloak-postgres
-          image: postgres:15.3
-          ports:
-            - containerPort: 5432
-              name: postgres
-          env:
+        - env:
+            - name: POSTGRES_USER
+              value: postgres
             - name: POSTGRES_PASSWORD
-              value: "postgres"
+              value: dbpass
             - name: PGDATA
               value: "/var/lib/postgresql/data/pgdata"
+            - name: PGTZ
+              value: "Europe/Amsterdam"
+            - name: BET_DB_USER
+              value: "bettingdbuser"
+            - name: BET_DB_PASSWORD
+              value: "dbpass"
+            - name: BET_DB_NAME
+              value: "bettingdb"
+            - name: CUSTOMER_DB_USER
+              value: "customerdbuser"
+            - name: CUSTOMER_DB_PASSWORD
+              value: "dbpass"
+            - name: CUSTOMER_DB_NAME
+              value: "customerdb"
+            - name: MARKET_DB_USER
+              value: "marketdbuser"
+            - name: MARKET_DB_PASSWORD
+              value: "dbpass"
+            - name: MARKET_DB_NAME
+              value: "marketdb"
+          image: $CONTAINER_REGISTRY/moviebets-postgres:$VERSION
+          name: moviebets-postgres
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
           volumeMounts:
-            - name: keycloak-postgres-dbcreation-script
-              mountPath: /docker-entrypoint-initdb.d
             - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql/data  # Default data path for PostgreSQL
           resources: {}
           readinessProbe:
             exec:
@@ -101,24 +130,22 @@ spec:
             periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 3
+      restartPolicy: Always
       volumes:
-        - name: keycloak-postgres-dbcreation-script
-          configMap:
-            name: keycloak-postgres-dbcreation-script
         - name: postgres-storage
           persistentVolumeClaim:
-            claimName: keycloak-postgres-pvc
+            claimName: moviebets-postgres-pvc
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: keycloak-postgres
+  name: moviebets-postgres
 spec:
   selector:
-    app: keycloak-postgres
+    app: moviebets-postgres
   ports:
-    - port: 5432
+    - name: "5432"
+      port: 5432
       targetPort: 5432
-      name: postgres
   type: ClusterIP
