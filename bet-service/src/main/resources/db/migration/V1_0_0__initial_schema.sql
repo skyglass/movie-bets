@@ -1,12 +1,26 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+DROP TABLE IF EXISTS item;
+
+CREATE TABLE item(
+    id uuid NOT NULL,
+    item_id character varying COLLATE pg_catalog."default" NOT NULL,
+    name character varying COLLATE pg_catalog."default" NOT NULL,
+    item_type int NOT NULL,
+    CONSTRAINT item_pkey PRIMARY KEY (id)
+);
+
+CREATE UNIQUE INDEX idx_item_unique_1 ON item (item_id);
+CREATE INDEX idx_item_id_1 ON item (item_id, item_type);
+
 DROP TABLE IF EXISTS bet;
 
 CREATE TABLE bet(
     id uuid NOT NULL,
     customer_id character varying COLLATE pg_catalog."default" NOT NULL,
     market_id uuid NOT NULL,
-    market_name character varying COLLATE pg_catalog."default" NOT NULL,
+    item1_id character varying COLLATE pg_catalog."default" NOT NULL,
+    item2_id character varying COLLATE pg_catalog."default" NOT NULL,
     stake int NOT NULL,
     result int NOT NULL,
     status character varying COLLATE pg_catalog."default" NOT NULL,
@@ -16,14 +30,14 @@ CREATE TABLE bet(
     CONSTRAINT bet_pkey PRIMARY KEY (id)
 );
 
-CREATE INDEX idx_bet_market_id ON bet (market_id);
-CREATE INDEX idx_bet_customer_id ON bet (customer_id);
-CREATE INDEX idx_bet_result ON bet (result);
-CREATE INDEX idx_bet_status ON bet (status);
+CREATE INDEX idx_bet_1 ON bet (market_id);
+CREATE INDEX idx_bet_2 ON bet (customer_id);
+CREATE INDEX idx_bet_3 ON bet (result);
+CREATE INDEX idx_bet_4 ON bet (status);
 
-CREATE INDEX idx_bet_market_result ON bet (market_id, result);
-CREATE INDEX idx_bet_market_status ON bet (market_id, status);
-CREATE UNIQUE INDEX idx_bet_customer_market ON bet (customer_id, market_id);
+CREATE INDEX idx_bet_5 ON bet (market_id, result);
+CREATE INDEX idx_bet_6 ON bet (market_id, status);
+CREATE UNIQUE INDEX idx_bet_unique_1 ON bet (customer_id, market_id);
 
 DROP TABLE IF EXISTS market_settle_status;
 
@@ -34,7 +48,7 @@ CREATE TABLE market_settle_status(id uuid NOT NULL,
                                CONSTRAINT market_settle_status_pkey PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX idx_market_settle_status_market_id ON market_settle_status (market_id);
+CREATE UNIQUE INDEX idx_market_settle_status_unique_1 ON market_settle_status (market_id);
 
 DROP TABLE IF EXISTS bet_settle_request;
 
@@ -45,5 +59,5 @@ CREATE TABLE bet_settle_request(
                                CONSTRAINT bet_settle_request_pkey PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX idx_bet_settle_request_request_id ON bet_settle_request (request_id);
-CREATE INDEX idx_bet_settle_request_market_id ON bet_settle_request (market_id);
+CREATE UNIQUE INDEX idx_bet_settle_request_1 ON bet_settle_request (request_id);
+CREATE INDEX idx_bet_settle_request_2 ON bet_settle_request (market_id);

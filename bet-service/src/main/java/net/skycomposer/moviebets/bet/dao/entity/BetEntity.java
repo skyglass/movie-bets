@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.skycomposer.moviebets.bet.dao.converter.MarketResultConverter;
 import net.skycomposer.moviebets.common.dto.bet.BetStatus;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
 
@@ -31,6 +32,12 @@ public class BetEntity {
 
     @Column(name = "market_name", nullable = false)
     private String marketName;
+
+    @Column(name = "item1_id", nullable = false)
+    private String item1_id;
+
+    @Column(name = "item2_id", nullable = false)
+    private String item2_id;
 
     @Column(name = "stake", nullable = false)
     private Integer stake;
