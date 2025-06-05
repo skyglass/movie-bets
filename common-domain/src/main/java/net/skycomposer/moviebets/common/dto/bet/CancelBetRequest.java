@@ -14,4 +14,5 @@ import lombok.NoArgsConstructor;
 public class CancelBetRequest {
     private UUID betId;
     private String reason;
+    private String marketName;
 }

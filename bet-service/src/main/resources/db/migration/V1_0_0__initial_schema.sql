@@ -10,8 +10,7 @@ CREATE TABLE item(
     CONSTRAINT item_pkey PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX idx_item_unique_1 ON item (item_id);
-CREATE INDEX idx_item_id_1 ON item (item_id, item_type);
+CREATE UNIQUE INDEX idx_item_unique_1 ON item (item_id, item_type);
 
 DROP TABLE IF EXISTS bet;
 
@@ -21,6 +20,7 @@ CREATE TABLE bet(
     market_id uuid NOT NULL,
     item1_id character varying COLLATE pg_catalog."default" NOT NULL,
     item2_id character varying COLLATE pg_catalog."default" NOT NULL,
+    item_type int NOT NULL,
     stake int NOT NULL,
     result int NOT NULL,
     status character varying COLLATE pg_catalog."default" NOT NULL,
