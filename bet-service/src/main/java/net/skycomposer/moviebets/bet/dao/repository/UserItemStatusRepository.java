@@ -17,6 +17,6 @@ public interface UserItemStatusRepository extends JpaRepository<UserItemStatusEn
 
     Optional<UserItemStatusEntity> findFirstByStatus(UserItemStatus status);
 
-    Optional<UserItemStatusEntity> findFirstByStatusAndItemTypeAndUserIdNot(UserItemStatus status, ItemType itemType, String userId);
+    Optional<UserItemStatusEntity> findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNot(UserItemStatus status, ItemType itemType, String userId, String itemId);
 
 }

@@ -70,10 +70,11 @@ public class UserItemStatusApplicationService {
             return;
         }
         UserItemStatusEntity secondUserItemStatus = userItemStatusRepository
-                .findFirstByStatusAndItemTypeAndUserIdNot(
+                .findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNot(
                         UserItemStatus.VOTED,
                         firstUserItemStatus.getItemType(),
-                        firstUserItemStatus.getUserId())
+                        firstUserItemStatus.getUserId(),
+                        firstUserItemStatus.getItemId())
                 .orElse(null);
         if (secondUserItemStatus == null) {
             return;
@@ -91,7 +92,7 @@ public class UserItemStatusApplicationService {
                 .item2Id(secondUserItemStatus.getItemId())
                 .item2Name((secondUserItemStatus.getItemName()))
                 .build();
-        //The key doesn't matter for the new market: sequential processing is not necessary here (firstUserItemStatus.getId() is used to process in parallel)
+        //The key doesn't matter for the new market: sequential processing is not necessary
         kafkaTemplate.send(marketCommandsTopicName, firstUserItemStatus.getId().toString(), userBetPairOpenMarketCommand);
         kafkaTemplate.send(betCommandsTopicName, marketOpenCheckCommand.getCheckId().toString(),
                 MarketOpenCheckCommand.builder()

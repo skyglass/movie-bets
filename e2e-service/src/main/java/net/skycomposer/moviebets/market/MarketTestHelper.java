@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.skycomposer.moviebets.common.dto.item.ItemType;
 import net.skycomposer.moviebets.common.dto.market.CloseMarketRequest;
 import net.skycomposer.moviebets.common.dto.market.MarketData;
 import net.skycomposer.moviebets.common.dto.market.MarketResponse;
@@ -23,8 +24,11 @@ public class MarketTestHelper {
 
     public MarketResponse createMarket() {
         MarketData marketData = MarketData.builder()
-                .item1("RM")
-                .item2("MU")
+                .item1Id("RM")
+                .item1Name("RM")
+                .item2Id("MU")
+                .item2Name("MU")
+                .itemType(ItemType.MOVIE)
                 .status(MarketStatus.OPENED)
                 .closesAt(Instant.ofEpochMilli(Instant.now().toEpochMilli() + DEFAULT_MARKET_CLOSE_TIME_MS))
                 .open(true)
