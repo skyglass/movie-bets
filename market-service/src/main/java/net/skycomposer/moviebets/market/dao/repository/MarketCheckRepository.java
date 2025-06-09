@@ -6,12 +6,12 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import net.skycomposer.moviebets.market.dao.entity.MarketCloseCheckEntity;
+import net.skycomposer.moviebets.market.dao.entity.MarketCheckEntity;
 
 @Repository
-public interface MarketCloseCheckRepository extends JpaRepository<MarketCloseCheckEntity, UUID> {
+public interface MarketCheckRepository extends JpaRepository<MarketCheckEntity, UUID> {
 
-    Optional<MarketCloseCheckEntity> findByCheckId(Integer checkId);
+    Optional<MarketCheckEntity> findByCheckId(Integer checkId);
 
     boolean existsByCheckId(Integer checkId);
 

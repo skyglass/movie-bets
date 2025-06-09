@@ -16,6 +16,7 @@ import net.skycomposer.moviebets.common.dto.bet.BetData;
 import net.skycomposer.moviebets.common.dto.bet.BetResponse;
 import net.skycomposer.moviebets.common.dto.bet.BetStatus;
 import net.skycomposer.moviebets.common.dto.bet.SumStakesData;
+import net.skycomposer.moviebets.common.dto.item.ItemType;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
 
 @Component
@@ -34,7 +35,11 @@ public class BetTestHelper {
     public BetResponse createBet(UUID marketId, String customerId, int stake, MarketResult result) {
         BetData betData = BetData.builder()
                 .marketId(marketId)
-                .marketName("RM vs MU")
+                .item1Id("MU")
+                .item1Name("MU")
+                .item2Id("RM")
+                .item2Name("RM")
+                .itemType(ItemType.MOVIE)
                 .customerId(customerId)
                 .requestId(UUID.randomUUID())
                 .cancelRequestId(UUID.randomUUID())

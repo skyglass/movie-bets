@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CloseMarketCheckCommand {
+public class MarketOpenCheckCommand {
     private Integer checkId;
 }

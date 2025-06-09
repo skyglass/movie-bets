@@ -1,15 +1,18 @@
 package net.skycomposer.moviebets.market.dao.entity;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.skycomposer.moviebets.common.dto.item.ItemType;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
 import net.skycomposer.moviebets.common.dto.market.MarketStatus;
-
-import java.time.Instant;
-import java.util.UUID;
+import net.skycomposer.moviebets.market.dao.converter.ItemTypeConverter;
+import net.skycomposer.moviebets.market.dao.converter.MarketResultConverter;
 
 @Table(name = "market")
 @Entity
@@ -23,11 +26,21 @@ public class MarketEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "item1", nullable = false)
-    private String item1;
+    @Column(name = "item1_id", nullable = false)
+    private String item1Id;
 
-    @Column(name = "item2", nullable = false)
-    private String item2;
+    @Column(name = "item1_name", nullable = false)
+    private String item1Name;
+
+    @Column(name = "item2_id", nullable = false)
+    private String item2Id;
+
+    @Column(name = "item2_name", nullable = false)
+    private String item2Name;
+
+    @Convert(converter = ItemTypeConverter.class)
+    @Column(name = "item_type")
+    private ItemType itemType;
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

@@ -9,20 +9,21 @@ import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 import net.skycomposer.moviebets.bet.service.application.UserItemStatusApplicationService;
-import net.skycomposer.moviebets.common.dto.bet.commands.UserItemBetRequest;
+import net.skycomposer.moviebets.common.dto.bet.commands.UserVotesUpdateCommand;
 
 @Component
-@KafkaListener(topics = "${user.item-status.topic.name}", groupId = "${spring.kafka.consumer.user-item-status.group-id}")
+@KafkaListener(topics = "${user.votes.topic.name}", groupId = "${spring.kafka.consumer.user-votes.group-id}")
 @RequiredArgsConstructor
-public class UserItemStatusHandler {
+public class UserVotesHandler {
 
     private final UserItemStatusApplicationService userItemStatusApplicationService;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @KafkaHandler
-    public void handleCommand(@Payload UserItemBetRequest userItemBetRequest) {
-        userItemStatusApplicationService.placeVote(userItemBetRequest);
+    public void handleUserVotesUpdateCommand(@Payload UserVotesUpdateCommand userVotesUpdateCommand) {
+        //userItemStatusApplicationService.placeVote(userItemBetRequest);
     }
 
 
 }
+

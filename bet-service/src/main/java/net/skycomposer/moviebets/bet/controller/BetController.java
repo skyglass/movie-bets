@@ -11,7 +11,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.skycomposer.moviebets.bet.service.BetService;
+import net.skycomposer.moviebets.bet.service.application.UserItemStatusApplicationService;
 import net.skycomposer.moviebets.common.dto.bet.*;
+import net.skycomposer.moviebets.common.dto.bet.commands.UserItemBetRequest;
 
 @Slf4j
 @RestController
@@ -19,6 +21,8 @@ import net.skycomposer.moviebets.common.dto.bet.*;
 public class BetController {
 
     private final BetService betService;
+
+    private final UserItemStatusApplicationService userItemStatusApplicationService;
 
     @GetMapping("/get-market-status/{marketId}")
     public MarketStatusData getMarketStatus(@PathVariable UUID marketId, Authentication authentication) {
@@ -64,6 +68,12 @@ public class BetController {
     public BetResponse place(@RequestBody @Valid BetData betData, Authentication authentication) {
         String authenticatedCustomerId = authentication.getName();
         return betService.place(betData, authenticatedCustomerId);
+    }
+
+    @PostMapping("/place-request")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserItemStatusResponse placeRequest(@RequestBody @Valid UserItemBetRequest userItemBetRequest, Authentication authentication) {
+        return userItemStatusApplicationService.placeVoteAsync(userItemBetRequest, authentication.getName());
     }
 
     @PreAuthorize("hasRole('MOVIEBETS_MANAGER')")

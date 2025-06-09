@@ -15,6 +15,8 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import net.skycomposer.moviebets.common.dto.bet.commands.UserBetPairOpenMarketCommand;
+import net.skycomposer.moviebets.common.dto.bet.events.UserBetPairMarketOpenedEvent;
 import net.skycomposer.moviebets.common.dto.market.*;
 import net.skycomposer.moviebets.common.dto.market.commands.CloseMarketCommand;
 import net.skycomposer.moviebets.market.dao.entity.MarketEntity;
@@ -34,20 +36,28 @@ public class MarketServiceImpl implements MarketService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
+    private final String betCommandsTopicName;
+
     private final String betSettleTopicName;
 
     private final Integer marketCloseTimeExtendSeconds;
 
+    private final Integer marketCloseTimeDefaultMinutes;
+
     public MarketServiceImpl(
             MarketRepository marketRepository,
             KafkaTemplate<String, Object> kafkaTemplate,
+            @Value("${bet.commands.topic.name}") String betCommandsTopicName,
             @Value("${bet.settle.topic.name}") String betSettleTopicName,
-            @Value("${market.close.close-time.extend-seconds}") Integer marketCloseTimeExtendSeconds
+            @Value("${market.close.close-time.extend-seconds}") Integer marketCloseTimeExtendSeconds,
+            @Value("${market.close.close-time.default-minutes}") Integer marketCloseTimeDefaultMinutes
     ) {
         this.marketRepository = marketRepository;
         this.kafkaTemplate = kafkaTemplate;
+        this.betCommandsTopicName = betCommandsTopicName;
         this.betSettleTopicName = betSettleTopicName;
         this.marketCloseTimeExtendSeconds = marketCloseTimeExtendSeconds;
+        this.marketCloseTimeDefaultMinutes = marketCloseTimeDefaultMinutes;
     }
 
 
@@ -58,30 +68,55 @@ public class MarketServiceImpl implements MarketService {
         if (marketEntity == null) {
             throw new MarketNotFoundException(marketId);
         }
-        return MarketData.builder()
-                .item1(marketEntity.getItem1())
-                .item2(marketEntity.getItem2())
-                .status(marketEntity.getStatus())
-                .result(marketEntity.getResult())
-                .open(marketEntity.getOpen())
-                .closesAt(marketEntity.getClosesAt())
-                .build();
+        return createMarketData(marketEntity);
     }
 
     @Override
     @Transactional
     public MarketResponse open(MarketData market) {
         MarketEntity marketEntity = new MarketEntity();
-        marketEntity.setItem1(market.getItem1());
-        marketEntity.setItem2(market.getItem2());
+        marketEntity.setItem1Id(market.getItem1Id());
+        marketEntity.setItem1Name(market.getItem1Name());
+        marketEntity.setItem2Id(market.getItem2Id());
+        marketEntity.setItem2Name(market.getItem2Name());
+        marketEntity.setItemType(market.getItemType());
         marketEntity.setStatus(market.getStatus());
-        marketEntity.setResult(market.getResult());
         marketEntity.setClosesAt(market.getClosesAt());
         marketEntity.setStatus(MarketStatus.OPENED);
         marketEntity = marketRepository.save(marketEntity);
         return new MarketResponse(marketEntity.getId(),
                 "Market %s opened successfully".formatted(marketEntity.getId()));
     }
+
+    @Override
+    @Transactional
+    public MarketResponse open(UserBetPairOpenMarketCommand request) {
+        Instant closesAt = now().plus(Duration.ofMinutes(marketCloseTimeDefaultMinutes));
+        MarketEntity marketEntity = new MarketEntity();
+        marketEntity.setItem1Id(request.getItem1Id());
+        marketEntity.setItem1Name(request.getItem1Name());
+        marketEntity.setItem2Id(request.getItem2Id());
+        marketEntity.setItem2Name(request.getItem2Name());
+        marketEntity.setItemType(request.getItemType());
+        marketEntity.setStatus(MarketStatus.OPENED);
+        marketEntity.setClosesAt(closesAt);
+        marketEntity = marketRepository.save(marketEntity);
+
+        UserBetPairMarketOpenedEvent marketOpenedEvent = UserBetPairMarketOpenedEvent.builder()
+                .user1Id(request.getUser1Id())
+                .user2Id(request.getUser2Id())
+                .item1Id(request.getItem1Id())
+                .item2Id(request.getItem2Id())
+                .item1Name(request.getItem1Name())
+                .item2Name(request.getItem2Name())
+                .itemType(request.getItemType())
+                .marketId(marketEntity.getId())
+                .build();
+        kafkaTemplate.send(betCommandsTopicName, marketEntity.getId().toString(), marketOpenedEvent);
+        return new MarketResponse(marketEntity.getId(),
+                "Market %s opened successfully".formatted(marketEntity.getId()));
+    }
+
     @Override
     @Transactional
     public MarketResponse close(UUID marketId) {
@@ -153,9 +188,22 @@ public class MarketServiceImpl implements MarketService {
     @Transactional(readOnly = true)
     public List<MarketData> findAll() {
         return marketRepository.findAllByOrderByClosesAtDesc().stream()
-                .map(entity -> new MarketData(entity.getId(), entity.getItem1(), entity.getItem2(),
-                        entity.getStatus(), entity.getResult(), entity.getClosesAt(), entity.getOpen()))
+                .map(entity -> createMarketData(entity))
                 .collect(Collectors.toList());
+    }
+
+    private MarketData createMarketData(MarketEntity marketEntity) {
+        return MarketData.builder()
+                .item1Id(marketEntity.getItem1Id())
+                .item1Name(marketEntity.getItem1Name())
+                .item2Id(marketEntity.getItem2Id())
+                .item2Name(marketEntity.getItem2Name())
+                .itemType(marketEntity.getItemType())
+                .status(marketEntity.getStatus())
+                .result(marketEntity.getResult())
+                .open(marketEntity.getOpen())
+                .closesAt(marketEntity.getClosesAt())
+                .build();
     }
 
 }

@@ -103,6 +103,7 @@ public class BetSettleHandler {
             betService.marketSettleStart(command.getMarketId(), totalCount);
             SettleBetsCommand settleBetsCommand = new SettleBetsCommand(command.getMarketId(), winnerEarned, totalCount, winResult);
             kafkaTemplate.send(betSettleTopicName, command.getMarketId().toString(), settleBetsCommand);
+
         } else {
             MarketCloseFailedEvent marketCloseFailedEvent = new MarketCloseFailedEvent(command.getMarketId());
             kafkaTemplate.send(marketCommandsTopicName, command.getMarketId().toString(), marketCloseFailedEvent);

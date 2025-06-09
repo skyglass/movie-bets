@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.skycomposer.moviebets.bet.dao.converter.ItemTypeConverter;
+import net.skycomposer.moviebets.common.dto.item.ItemType;
 import net.skycomposer.moviebets.common.dto.item.UserItemStatus;
 
 import java.util.UUID;
@@ -26,6 +28,13 @@ public class UserItemStatusEntity {
 
     @Column(name = "item_id", nullable = false)
     private String itemId;
+
+    @Column(name = "item_name", nullable = false)
+    private String itemName;
+
+    @Convert(converter = ItemTypeConverter.class)
+    @Column(name = "item_type")
+    private ItemType itemType;
 
     @Column(name = "status", nullable = false)
     private UserItemStatus status;

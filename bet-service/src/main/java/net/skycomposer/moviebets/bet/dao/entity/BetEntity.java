@@ -35,8 +35,14 @@ public class BetEntity {
     @Column(name = "item1_id", nullable = false)
     private String item1Id;
 
+    @Column(name = "item1_name", nullable = false)
+    private String item1Name;
+
     @Column(name = "item2_id", nullable = false)
     private String item2Id;
+
+    @Column(name = "item2_name", nullable = false)
+    private String item2Name;
 
     @Convert(converter = ItemTypeConverter.class)
     @Column(name = "item_type")

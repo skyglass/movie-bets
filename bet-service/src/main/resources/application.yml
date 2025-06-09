@@ -73,6 +73,10 @@ spring:
         group-id: bet-settle-job-consumer
       customer-events:
         group-id: customer-events-consumer
+      item-status:
+        group-id: item-status-consumer
+      user-votes:
+        group-id: user-votes-consumer
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
@@ -133,9 +137,6 @@ market:
   commands:
     topic:
       name: market-commands
-  close:
-    topic:
-      name: market-close
 
 customer:
   commands:
@@ -147,3 +148,11 @@ customer:
   events:
     topic:
       name: customer-events
+
+user:
+  item-status:
+    topic:
+      name: item-status
+  votes:
+    topic:
+      name: user-votes

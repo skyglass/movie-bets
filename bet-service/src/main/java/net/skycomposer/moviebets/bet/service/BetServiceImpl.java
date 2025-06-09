@@ -15,16 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import net.skycomposer.moviebets.bet.dao.entity.BetEntity;
 import net.skycomposer.moviebets.bet.dao.entity.BetSettleRequestEntity;
-import net.skycomposer.moviebets.bet.dao.entity.ItemEntity;
 import net.skycomposer.moviebets.bet.dao.entity.MarketSettleStatusEntity;
 import net.skycomposer.moviebets.bet.dao.repository.BetRepository;
 import net.skycomposer.moviebets.bet.dao.repository.BetSettleRequestRepository;
-import net.skycomposer.moviebets.bet.dao.repository.ItemRepository;
 import net.skycomposer.moviebets.bet.dao.repository.MarketSettleStatusRepository;
 import net.skycomposer.moviebets.bet.exception.*;
 import net.skycomposer.moviebets.common.dto.bet.*;
 import net.skycomposer.moviebets.common.dto.bet.events.BetCreatedEvent;
-import net.skycomposer.moviebets.common.dto.item.ItemType;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
 
 @Service
@@ -33,8 +30,6 @@ public class BetServiceImpl implements BetService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final BetRepository betRepository;
-
-    private final ItemRepository itemRepository;
 
     private final MarketSettleStatusRepository marketSettleStatusRepository;
 
@@ -47,14 +42,12 @@ public class BetServiceImpl implements BetService {
 
     public BetServiceImpl(
             BetRepository betRepository,
-            ItemRepository itemRepository,
             MarketSettleStatusRepository marketSettleStatusRepository,
             BetSettleRequestRepository betSettleRequestRepository,
             KafkaTemplate<String, Object> kafkaTemplate,
             @Value("${bet.commands.topic.name}") String betCommandsTopicName
     ) {
         this.betRepository = betRepository;
-        this.itemRepository = itemRepository;
         this.marketSettleStatusRepository = marketSettleStatusRepository;
         this.betSettleRequestRepository = betSettleRequestRepository;
         this.kafkaTemplate = kafkaTemplate;
@@ -92,8 +85,6 @@ public class BetServiceImpl implements BetService {
         if (betRepository.existsByCustomerIdAndMarketId(betData.getCustomerId(), betData.getMarketId())) {
             throw new BetAlreadyExistsException(betData.getCustomerId(), getMarketName(betData));
         }
-        getOrCreateItem1Entity(betData);
-        getOrCreateItem2Entity(betData);
         BetEntity betEntity = createBetEntity(betData);
         betEntity.setStatus(BetStatus.PlACED);
         betEntity = betRepository.save(betEntity);
@@ -114,7 +105,7 @@ public class BetServiceImpl implements BetService {
             throw new BetCloseDeniedException(authenticatedCustomerId, betEntity.getCustomerId());
         }
         if (isMarketClosed(betEntity.getMarketId())) {
-            throw new MarketIsClosedException(cancelBetRequest.getMarketName());
+            throw new MarketIsClosedException(betEntity.getMarketId().toString());
         }
         betEntity.setStatus(BetStatus.CANCELLED);
         betEntity = betRepository.save(betEntity);
@@ -265,16 +256,14 @@ public class BetServiceImpl implements BetService {
     }
 
     private BetData createBetData(BetEntity betEntity) {
-        ItemEntity item1Entity = findItemEntity(betEntity.getItem1Id(), betEntity.getItemType());
-        ItemEntity item2Entity = findItemEntity(betEntity.getItem2Id(), betEntity.getItemType());
         return BetData.builder()
                 .betId(betEntity.getId())
                 .customerId(betEntity.getCustomerId())
                 .marketId(betEntity.getMarketId())
-                .item1Id(item1Entity.getItemId())
-                .item2Id(item2Entity.getItemId())
-                .item1Name(item1Entity.getName())
-                .item2Name(item2Entity.getName())
+                .item1Id(betEntity.getItem1Id())
+                .item1Name(betEntity.getItem1Name())
+                .item2Id(betEntity.getItem2Id())
+                .item2Name(betEntity.getItem2Name())
                 .itemType(betEntity.getItemType())
                 .stake(betEntity.getStake())
                 .result(betEntity.getResult())
@@ -292,7 +281,9 @@ public class BetServiceImpl implements BetService {
                 .customerId(betData.getCustomerId())
                 .marketId(betData.getMarketId())
                 .item1Id(betData.getItem1Id())
+                .item1Name(betData.getItem1Name())
                 .item2Id(betData.getItem2Id())
+                .item2Name(betData.getItem2Name())
                 .itemType(betData.getItemType())
                 .stake(betData.getStake() == null ? 1 : betData.getStake())
                 .result(betData.getResult())
@@ -310,31 +301,6 @@ public class BetServiceImpl implements BetService {
                 .stake(betEntity.getStake())
                 .result(betEntity.getResult())
                 .build();
-    }
-
-    private ItemEntity getOrCreateItem1Entity(BetData betData) {
-        return getOrCreateItemEntity(betData.getItem1Id(), betData.getItem1Name(), betData.getItemType());
-    }
-
-    private ItemEntity getOrCreateItem2Entity(BetData betData) {
-        return getOrCreateItemEntity(betData.getItem2Id(), betData.getItem2Name(), betData.getItemType());
-    }
-
-    private ItemEntity findItemEntity(String itemId, ItemType itemType) {
-        return itemRepository.findByItemIdAndItemType(itemId, itemType)
-                .orElseThrow(() -> new ItemNotFoundException(itemId, itemType));
-    }
-
-    private ItemEntity getOrCreateItemEntity(String itemId, String name, ItemType itemType) {
-        ItemEntity item = itemRepository.findByItemIdAndItemType(itemId, itemType).orElse(null);
-        if (item == null) {
-            item = itemRepository.save(ItemEntity.builder()
-                    .itemId(itemId)
-                    .itemType(itemType)
-                    .name(name)
-                    .build());
-        }
-        return item;
     }
 
     private String getMarketName(BetData betData) {

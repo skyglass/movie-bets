@@ -1,17 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-DROP TABLE IF EXISTS item;
-
-CREATE TABLE item(
-    id uuid NOT NULL,
-    item_id character varying COLLATE pg_catalog."default" NOT NULL,
-    name character varying COLLATE pg_catalog."default" NOT NULL,
-    item_type int NOT NULL,
-    CONSTRAINT item_pkey PRIMARY KEY (id)
-);
-
-CREATE UNIQUE INDEX idx_item_unique_1 ON item (item_id, item_type);
-
 DROP TABLE IF EXISTS bet;
 
 CREATE TABLE bet(
@@ -19,7 +7,9 @@ CREATE TABLE bet(
     customer_id character varying COLLATE pg_catalog."default" NOT NULL,
     market_id uuid NOT NULL,
     item1_id character varying COLLATE pg_catalog."default" NOT NULL,
+    item1_name character varying COLLATE pg_catalog."default" NOT NULL,
     item2_id character varying COLLATE pg_catalog."default" NOT NULL,
+    item2_name character varying COLLATE pg_catalog."default" NOT NULL,
     item_type int NOT NULL,
     stake int NOT NULL,
     result int NOT NULL,

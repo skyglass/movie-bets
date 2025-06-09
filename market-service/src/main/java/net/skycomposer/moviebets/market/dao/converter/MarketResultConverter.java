@@ -1,4 +1,4 @@
-package net.skycomposer.moviebets.market.dao.entity;
+package net.skycomposer.moviebets.market.dao.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;

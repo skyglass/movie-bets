@@ -32,10 +32,12 @@ CREATE TABLE user_item_status (
                                    id uuid NOT NULL,
                                    user_id character varying COLLATE pg_catalog."default" NOT NULL,
                                    item_id character varying COLLATE pg_catalog."default" NOT NULL,
+                                   item_name character varying COLLATE pg_catalog."default" NOT NULL,
+                                   item_type int NOT NULL,
                                    status int NOT NULL,
                                    CONSTRAINT user_item_status_pkey PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX idx_user_item_status_unique_1 ON user_item_status (user_id, item_id);
+CREATE UNIQUE INDEX idx_user_item_status_unique_1 ON user_item_status (user_id, item_id, item_type);
 CREATE INDEX idx_user_item_status_1 ON user_item_status (user_id);
 CREATE INDEX idx_user_item_status_2 ON user_item_status (item_id);

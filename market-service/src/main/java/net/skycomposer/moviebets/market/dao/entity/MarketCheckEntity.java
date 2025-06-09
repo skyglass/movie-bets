@@ -15,13 +15,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MarketCloseCheckEntity {
+public class MarketCheckEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    public static final Integer MARKET_CLOSE_CHECK_ID = 1;
+    public static final Integer MARKET_CHECK_ID = 1;
 
     @Column(name = "last_check_at", nullable = false)
     private Instant lastCheckAt;
@@ -31,7 +31,7 @@ public class MarketCloseCheckEntity {
 
     @PrePersist
     public void prePersist() {
-        this.checkId = MARKET_CLOSE_CHECK_ID;
+        this.checkId = MARKET_CHECK_ID;
         this.lastCheckAt = Instant.now();
     }
 }

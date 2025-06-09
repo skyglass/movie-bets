@@ -67,8 +67,8 @@ spring:
         enable.idempotence: true
         allow.auto.create.topics: false
     consumer:
-      market-close:
-        group-id: market-close-consumer
+      market-check:
+        group-id: market-check-consumer
       group-id: market-consumer
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
@@ -122,10 +122,16 @@ market:
   commands:
     topic:
       name: market-commands
-  close:
+  check:
     topic:
-      name: market-close
+      name: market-check
     close-time:
+      default-minutes: 60
       extend-seconds: 60
     check-time:
       threshold-seconds: 5
+
+user:
+  votes:
+    topic:
+      name: user-votes

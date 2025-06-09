@@ -44,7 +44,7 @@ public abstract class E2eTest {
         kafkaClient.clearMessages("customer-events");
         kafkaClient.clearMessages("customer-events-dlq");
         kafkaClient.clearMessages("market-commands");
-        kafkaClient.clearMessages("market-close");
+        kafkaClient.clearMessages("market-check");
         mockHelper.mockCredentials(securityOauth2Username, securityOauth2Password);
         betTestDataService.resetDatabase();
         marketTestDataService.resetDatabase();

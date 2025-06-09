@@ -2,6 +2,7 @@ package net.skycomposer.moviebets.bet.service.handler;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,19 +15,26 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import net.skycomposer.moviebets.bet.service.BetService;
+import net.skycomposer.moviebets.bet.service.application.UserItemStatusApplicationService;
+import net.skycomposer.moviebets.common.dto.bet.BetData;
 import net.skycomposer.moviebets.common.dto.bet.CancelBetRequest;
 import net.skycomposer.moviebets.common.dto.bet.commands.RejectBetCommand;
 import net.skycomposer.moviebets.common.dto.bet.commands.SettleBetCommand;
 import net.skycomposer.moviebets.common.dto.bet.events.BetCreatedEvent;
 import net.skycomposer.moviebets.common.dto.bet.events.BetSettledEvent;
+import net.skycomposer.moviebets.common.dto.bet.events.UserBetPairMarketOpenedEvent;
 import net.skycomposer.moviebets.common.dto.customer.commands.ReserveFundsCommand;
 import net.skycomposer.moviebets.common.dto.customer.commands.SettleFundsCommand;
+import net.skycomposer.moviebets.common.dto.market.MarketResult;
+import net.skycomposer.moviebets.common.dto.market.commands.MarketOpenCheckCommand;
 
 @Component
 @KafkaListener(topics = "${bet.commands.topic.name}", groupId = "${spring.kafka.consumer.bet-commands.group-id}")
 public class BetCommandHandler {
 
     private final BetService betService;
+
+    private final UserItemStatusApplicationService userItemStatusApplicationService;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -42,6 +50,7 @@ public class BetCommandHandler {
     private final Integer customerCommandsRetryTimeoutSeconds;
 
     public BetCommandHandler(BetService betService,
+            UserItemStatusApplicationService userItemStatusApplicationService,
             KafkaTemplate<String, Object> kafkaTemplate,
             @Value("${bet.settle-job.topic.name}") String betSettleJobTopicName,
             @Value("${customer.commands.topic.name}") String customerCommandsTopicName,
@@ -51,6 +60,7 @@ public class BetCommandHandler {
 
     ) {
         this.betService = betService;
+        this.userItemStatusApplicationService = userItemStatusApplicationService;
         this.kafkaTemplate = kafkaTemplate;
         this.betSettleJobTopicName = betSettleJobTopicName;
         this.customerCommandsTopicName = customerCommandsTopicName;
@@ -83,7 +93,7 @@ public class BetCommandHandler {
     }
 
     @KafkaHandler
-    @Transactional("kafkaTransactionManager")
+    @Transactional
     public void handleBetCreatedEvent(@Payload BetCreatedEvent event) {
         boolean isMarketClosed = betService.isMarketClosed(event.getMarketId());
         if (isMarketClosed) {
@@ -105,6 +115,36 @@ public class BetCommandHandler {
                 Instant.now()
         );
         kafkaTemplate.send(customerCommandsTopicName, event.getCustomerId(), reserveFundsCommand);
+    }
+
+    @KafkaHandler
+    @Transactional
+    public void handleUserBetPairMarketOpenedEvent(@Payload UserBetPairMarketOpenedEvent event) {
+        BetData bet1 = createBet(event, event.getUser1Id(), MarketResult.ITEM1_WINS);
+        BetData bet2 = createBet(event, event.getUser2Id(), MarketResult.ITEM2_WINS);
+        betService.place(bet1, bet1.getCustomerId());
+        betService.place(bet2, bet2.getCustomerId());
+    }
+
+    @KafkaHandler
+    public void handleMarketOpenCheckCommand(@Payload MarketOpenCheckCommand command) {
+        userItemStatusApplicationService.openMarket(command);
+    }
+
+    private BetData createBet(UserBetPairMarketOpenedEvent event, String userId, MarketResult marketResult) {
+        return BetData.builder()
+                .item1Id(event.getItem1Id())
+                .item2Id(event.getItem2Id())
+                .item1Name(event.getItem1Name())
+                .item2Name(event.getItem2Name())
+                .itemType(event.getItemType())
+                .requestId(UUID.randomUUID())
+                .cancelRequestId(UUID.randomUUID())
+                .result(marketResult)
+                .stake(1)
+                .customerId(userId)
+                .marketId(event.getMarketId())
+                .build();
     }
 
 }

@@ -1,5 +1,6 @@
 package net.skycomposer.moviebets.market.service;
 
+import net.skycomposer.moviebets.common.dto.bet.commands.UserBetPairOpenMarketCommand;
 import net.skycomposer.moviebets.common.dto.market.*;
 
 import java.util.List;
@@ -12,6 +13,8 @@ public interface MarketService {
     MarketData findMarketById(UUID marketId);
 
     MarketResponse open(MarketData marketData);
+
+    MarketResponse open(UserBetPairOpenMarketCommand request);
 
     MarketResponse close(CloseMarketRequest request);
 

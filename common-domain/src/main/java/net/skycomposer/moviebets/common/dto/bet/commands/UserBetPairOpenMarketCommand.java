@@ -1,7 +1,4 @@
-package net.skycomposer.moviebets.common.dto.market;
-
-import java.time.Instant;
-import java.util.UUID;
+package net.skycomposer.moviebets.common.dto.bet.commands;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,16 +10,12 @@ import net.skycomposer.moviebets.common.dto.item.ItemType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MarketData {
-    private UUID marketId;
+public class UserBetPairOpenMarketCommand {
+    private String user1Id;
+    private String user2Id;
     private String item1Id;
     private String item1Name;
     private String item2Id;
     private String item2Name;
     private ItemType itemType;
-    private MarketStatus status;
-    private MarketResult result;
-    private Instant closesAt;
-    private boolean open;
-
 }
