@@ -9,11 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import net.skycomposer.moviebets.bet.dao.entity.UserItemStatusEntity;
 import net.skycomposer.moviebets.bet.dao.repository.UserItemStatusRepository;
-import net.skycomposer.moviebets.bet.exception.UserItemBetRequestDeniedException;
+import net.skycomposer.moviebets.bet.exception.UserItemStatusRequestDeniedException;
 import net.skycomposer.moviebets.bet.service.UserItemStatusService;
 import net.skycomposer.moviebets.common.dto.bet.UserItemStatusResponse;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserBetPairOpenMarketCommand;
-import net.skycomposer.moviebets.common.dto.bet.commands.UserItemBetRequest;
+import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
 import net.skycomposer.moviebets.common.dto.item.UserItemStatus;
 import net.skycomposer.moviebets.common.dto.market.commands.MarketOpenCheckCommand;
 
@@ -47,20 +47,16 @@ public class UserItemStatusApplicationService {
     }
 
     @Transactional
-    public UserItemStatusResponse placeVoteAsync(UserItemBetRequest userItemBetRequest, String authenticatedUserId) {
-        if (!Objects.equals(userItemBetRequest.getUserId(), authenticatedUserId)) {
-            throw new UserItemBetRequestDeniedException(authenticatedUserId, userItemBetRequest.getUserId());
+    public UserItemStatusResponse placeVoteAsync(UserItemStatusRequest userItemStatusRequest, String authenticatedUserId) {
+        if (!Objects.equals(userItemStatusRequest.getUserId(), authenticatedUserId)) {
+            throw new UserItemStatusRequestDeniedException(authenticatedUserId, userItemStatusRequest.getUserId());
         }
-        kafkaTemplate.send(userItemStatusTopicName, userItemBetRequest.getUserId(), userItemBetRequest);
+        kafkaTemplate.send(userItemStatusTopicName, userItemStatusRequest.getUserId(), userItemStatusRequest);
         return UserItemStatusResponse.builder()
-                .itemId(userItemBetRequest.getItemId())
-                .userId(userItemBetRequest.getUserId())
-                .message("Vote request has been sent for userId = %s and itemId = %s".formatted(userItemBetRequest.getUserId(), userItemBetRequest.getItemId()))
+                .itemId(userItemStatusRequest.getItemId())
+                .userId(userItemStatusRequest.getUserId())
+                .message("Vote request has been sent for userId = %s and itemId = %s".formatted(userItemStatusRequest.getUserId(), userItemStatusRequest.getItemId()))
                 .build();
-    }
-
-    public boolean placeVote(UserItemBetRequest userItemBetRequest) {
-        return userItemStatusService.placeVote(userItemBetRequest);
     }
 
     @Transactional

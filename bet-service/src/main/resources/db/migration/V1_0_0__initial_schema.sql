@@ -22,11 +22,10 @@ CREATE TABLE bet(
 
 CREATE INDEX idx_bet_1 ON bet (market_id);
 CREATE INDEX idx_bet_2 ON bet (customer_id);
-CREATE INDEX idx_bet_3 ON bet (result);
-CREATE INDEX idx_bet_4 ON bet (status);
 
-CREATE INDEX idx_bet_5 ON bet (market_id, result);
-CREATE INDEX idx_bet_6 ON bet (market_id, status);
+CREATE INDEX idx_bet_3 ON bet (market_id, result);
+CREATE INDEX idx_bet_4 ON bet (market_id, status);
+CREATE INDEX idx_bet_5 ON bet (market_id, status, result);
 CREATE UNIQUE INDEX idx_bet_unique_1 ON bet (customer_id, market_id);
 
 DROP TABLE IF EXISTS market_settle_status;

@@ -8,7 +8,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
-import net.skycomposer.moviebets.bet.service.application.UserItemStatusApplicationService;
+import net.skycomposer.moviebets.bet.service.UserItemVotesService;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserVotesUpdateCommand;
 
 @Component
@@ -16,12 +16,12 @@ import net.skycomposer.moviebets.common.dto.bet.commands.UserVotesUpdateCommand;
 @RequiredArgsConstructor
 public class UserVotesHandler {
 
-    private final UserItemStatusApplicationService userItemStatusApplicationService;
+    private final UserItemVotesService userItemVotesService;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @KafkaHandler
     public void handleUserVotesUpdateCommand(@Payload UserVotesUpdateCommand userVotesUpdateCommand) {
-        //userItemStatusApplicationService.placeVote(userItemBetRequest);
+        userItemVotesService.updateUserVotesAndFriendWeights(userVotesUpdateCommand);
     }
 
 

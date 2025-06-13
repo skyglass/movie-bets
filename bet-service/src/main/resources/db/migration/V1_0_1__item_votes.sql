@@ -4,11 +4,12 @@ CREATE TABLE user_item_votes (
                                   id uuid NOT NULL,
                                   user_id character varying COLLATE pg_catalog."default" NOT NULL,
                                   item_id character varying COLLATE pg_catalog."default" NOT NULL,
+                                  item_type int NOT NULL,
                                   votes integer NOT NULL,
                                   CONSTRAINT user_item_votes_pkey PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX idx_user_item_votes_unique ON user_item_votes (user_id, item_id);
+CREATE UNIQUE INDEX idx_user_item_votes_unique ON user_item_votes (user_id, item_id, item_type);
 CREATE INDEX idx_user_item_votes_1 ON user_item_votes (user_id);
 CREATE INDEX idx_user_item_votes_2 ON user_item_votes (item_id);
 

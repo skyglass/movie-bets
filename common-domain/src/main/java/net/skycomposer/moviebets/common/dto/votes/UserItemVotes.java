@@ -1,4 +1,4 @@
-package net.skycomposer.moviebets.common.dto.bet.commands;
+package net.skycomposer.moviebets.common.dto.votes;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,9 +10,10 @@ import net.skycomposer.moviebets.common.dto.item.ItemType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserItemBetRequest {
+public class UserItemVotes {
     private String userId;
     private String itemId;
     private ItemType itemType;
-    private String itemName;
+    private boolean canVote;
+    private Long votes;
 }

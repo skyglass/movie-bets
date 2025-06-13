@@ -26,7 +26,7 @@ public interface BetService {
 
     MarketStatusData getMarketStatus(UUID marketId, String customerId);
 
-    BetResponse place(BetData betData, String authenticatedCustomerId);
+    BetResponse placeBet(BetData betData, String authenticatedCustomerId);
 
     BetResponse cancel(CancelBetRequest request, String authenticatedCustomerId, boolean isAdmin);
 
@@ -45,5 +45,7 @@ public interface BetService {
     void marketSettleDone(UUID marketId, MarketResult winResult);
 
     BetStatusResponse getBetStatus(String customerId, UUID marketId);
+
+    PlaceBetDataList getOpenMarkets(String userId);
 
 }

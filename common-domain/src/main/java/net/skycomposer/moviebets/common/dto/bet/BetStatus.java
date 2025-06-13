@@ -9,7 +9,7 @@ public enum BetStatus {
     SETTLED,
     CANCELLED;
 
-    public static List<BetStatus> getClosedMarketInvalidStatuses() {
-        return List.of(PlACED, CANCELLED);
+    public static List<BetStatus> getValidStatuses() {
+        return List.of(VALIDATED, SETTLE_STARTED, SETTLED);
     }
 }

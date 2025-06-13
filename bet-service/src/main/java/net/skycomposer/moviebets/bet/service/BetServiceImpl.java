@@ -21,6 +21,7 @@ import net.skycomposer.moviebets.bet.dao.repository.BetSettleRequestRepository;
 import net.skycomposer.moviebets.bet.dao.repository.MarketSettleStatusRepository;
 import net.skycomposer.moviebets.bet.exception.*;
 import net.skycomposer.moviebets.common.dto.bet.*;
+import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
 import net.skycomposer.moviebets.common.dto.bet.events.BetCreatedEvent;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
 
@@ -39,19 +40,23 @@ public class BetServiceImpl implements BetService {
 
     private final String betCommandsTopicName;
 
+    private final String userItemStatusTopicName;
+
 
     public BetServiceImpl(
-            BetRepository betRepository,
-            MarketSettleStatusRepository marketSettleStatusRepository,
-            BetSettleRequestRepository betSettleRequestRepository,
-            KafkaTemplate<String, Object> kafkaTemplate,
-            @Value("${bet.commands.topic.name}") String betCommandsTopicName
+            final BetRepository betRepository,
+            final MarketSettleStatusRepository marketSettleStatusRepository,
+            final BetSettleRequestRepository betSettleRequestRepository,
+            final KafkaTemplate<String, Object> kafkaTemplate,
+            final @Value("${bet.commands.topic.name}") String betCommandsTopicName,
+            final @Value("${user.item-status.topic.name}") String userItemStatusTopicName
     ) {
         this.betRepository = betRepository;
         this.marketSettleStatusRepository = marketSettleStatusRepository;
         this.betSettleRequestRepository = betSettleRequestRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.betCommandsTopicName = betCommandsTopicName;
+        this.userItemStatusTopicName = userItemStatusTopicName;
     }
 
 
@@ -75,7 +80,7 @@ public class BetServiceImpl implements BetService {
 
     @Override
     @Transactional
-    public BetResponse place(BetData betData, String authenticatedCustomerId) {
+    public BetResponse placeBet(BetData betData, String authenticatedCustomerId) {
         if (!Objects.equals(betData.getCustomerId(), authenticatedCustomerId)) {
             throw new BetOpenDeniedException(authenticatedCustomerId, betData.getCustomerId());
         }
@@ -90,6 +95,7 @@ public class BetServiceImpl implements BetService {
         betEntity = betRepository.save(betEntity);
         BetCreatedEvent betCreatedEvent = createBetCreatedEvent(betEntity, betData, betData.getRequestId(), betData.getCancelRequestId());
         kafkaTemplate.send(betCommandsTopicName, betEntity.getId().toString(), betCreatedEvent);
+        kafkaTemplate.send(userItemStatusTopicName, authenticatedCustomerId, createUserItemStatusRequest(betData));
         return new BetResponse(betEntity.getId(),
                 "Bet %s created successfully".formatted(betEntity.getId()));
     }
@@ -182,7 +188,7 @@ public class BetServiceImpl implements BetService {
     @Override
     @Transactional(readOnly = true)
     public int countByMarketIdAndStatus(UUID marketId, BetStatus betStatus) {
-        return betRepository.countByMarketIdAndStatus(marketId, betStatus);
+        return betRepository.countByMarketIdAndStatus(marketId, betStatus).intValue();
     }
 
     @Override
@@ -198,9 +204,7 @@ public class BetServiceImpl implements BetService {
     public MarketStatusData getMarketStatus(UUID marketId, String customerId) {
         boolean marketClosed = isMarketClosed(marketId);
         boolean customerBetExists = betRepository.existsByCustomerIdAndMarketId(customerId, marketId);
-        Integer votes = marketClosed
-                ? betRepository.countByMarketIdAndStatusNotIn(marketId, BetStatus.getClosedMarketInvalidStatuses())
-                : betRepository.countByMarketIdAndStatus(marketId, BetStatus.VALIDATED);
+        Integer votes = betRepository.countByMarketIdAndStatusIn(marketId, BetStatus.getValidStatuses());
         boolean canPlaceBet = !marketClosed && !customerBetExists;
         return MarketStatusData.builder()
                 .canPlaceBet(canPlaceBet)
@@ -215,6 +219,12 @@ public class BetServiceImpl implements BetService {
         boolean betExists = betRepository.existsByCustomerIdAndMarketId(customerId, marketId);
         UUID betId = betExists ? betRepository.findByCustomerIdAndMarketId(customerId, marketId).get().getId() : null;
         return new BetStatusResponse(betId, betExists);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PlaceBetDataList getOpenMarkets(String userId) {
+        return new PlaceBetDataList(betRepository.findOpenMarketsExcludingWhereUserAlreadyPlacedBet(userId));
     }
 
     @Override
@@ -300,6 +310,15 @@ public class BetServiceImpl implements BetService {
                 .marketName(getMarketName(betData))
                 .stake(betEntity.getStake())
                 .result(betEntity.getResult())
+                .build();
+    }
+
+    private UserItemStatusRequest createUserItemStatusRequest(BetData betData) {
+        return UserItemStatusRequest.builder()
+                .itemId(betData.getResult() == MarketResult.ITEM1_WINS ? betData.getItem1Id() : betData.getItem2Id())
+                .itemName(betData.getResult() == MarketResult.ITEM1_WINS ? betData.getItem1Name() : betData.getItem2Name())
+                .userId(betData.getCustomerId())
+                .itemType(betData.getItemType())
                 .build();
     }
 

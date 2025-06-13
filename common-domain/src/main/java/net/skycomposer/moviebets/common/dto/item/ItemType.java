@@ -2,7 +2,15 @@ package net.skycomposer.moviebets.common.dto.item;
 
 public enum ItemType {
     MOVIE(0),
-    MUSIC(1);
+    MOVIE_ACTOR(1),
+    MOVIE_DIRECTOR(2),
+    MOVIE_CHARACTER(3),
+    MUSIC(4),
+    MUSIC_ARTIST(5),
+    MUSIC_ALBUM(6),
+    BOOK(7),
+    BOOK_AUTHOR(8);
+
 
     private int value;
 

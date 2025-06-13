@@ -11,9 +11,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.skycomposer.moviebets.bet.service.BetService;
+import net.skycomposer.moviebets.bet.service.UserItemVotesService;
 import net.skycomposer.moviebets.bet.service.application.UserItemStatusApplicationService;
 import net.skycomposer.moviebets.common.dto.bet.*;
-import net.skycomposer.moviebets.common.dto.bet.commands.UserItemBetRequest;
+import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
+import net.skycomposer.moviebets.common.dto.votes.UserItemVotesList;
 
 @Slf4j
 @RestController
@@ -21,6 +23,8 @@ import net.skycomposer.moviebets.common.dto.bet.commands.UserItemBetRequest;
 public class BetController {
 
     private final BetService betService;
+
+    private final UserItemVotesService userItemVotesService;
 
     private final UserItemStatusApplicationService userItemStatusApplicationService;
 
@@ -46,6 +50,21 @@ public class BetController {
       return betService.getBetsForMarket(marketId, false);
     }
 
+    @GetMapping("/get-recommended-movies")
+    public UserItemVotesList getRecommendedMovies(Authentication authentication) {
+        return userItemVotesService.getRecommendedMovies(authentication.getName());
+    }
+
+    @GetMapping("/get-recommended-movies-excluding-voted")
+    public UserItemVotesList getRecommendedMoviesExcludingVoted(Authentication authentication) {
+        return userItemVotesService.getRecommendedMoviesExcludingVoted(authentication.getName());
+    }
+
+    @GetMapping("/get-open-markets")
+    public PlaceBetDataList getOpenMarkets(Authentication authentication) {
+        return betService.getOpenMarkets(authentication.getName());
+    }
+
     @GetMapping("/get-bet-status/{customerId}/{marketId}")
     public BetStatusResponse getBetStatus(@PathVariable String customerId, @PathVariable UUID marketId) {
         return betService.getBetStatus(customerId, marketId);
@@ -67,20 +86,20 @@ public class BetController {
     @ResponseStatus(HttpStatus.CREATED)
     public BetResponse place(@RequestBody @Valid BetData betData, Authentication authentication) {
         String authenticatedCustomerId = authentication.getName();
-        return betService.place(betData, authenticatedCustomerId);
+        return betService.placeBet(betData, authenticatedCustomerId);
     }
 
     @PostMapping("/place-request")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserItemStatusResponse placeRequest(@RequestBody @Valid UserItemBetRequest userItemBetRequest, Authentication authentication) {
-        return userItemStatusApplicationService.placeVoteAsync(userItemBetRequest, authentication.getName());
+    public UserItemStatusResponse placeRequest(@RequestBody @Valid UserItemStatusRequest userItemStatusRequest, Authentication authentication) {
+        return userItemStatusApplicationService.placeVoteAsync(userItemStatusRequest, authentication.getName());
     }
 
     @PreAuthorize("hasRole('MOVIEBETS_MANAGER')")
     @PostMapping("/place-for-admin")
     @ResponseStatus(HttpStatus.CREATED)
     public BetResponse placeForAdmin(@RequestBody @Valid BetData betData) {
-        return betService.place(betData, betData.getCustomerId());
+        return betService.placeBet(betData, betData.getCustomerId());
     }
 
     @PreAuthorize("hasRole('MOVIEBETS_MANAGER')")

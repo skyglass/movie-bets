@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.skycomposer.moviebets.bet.dao.converter.ItemTypeConverter;
+import net.skycomposer.moviebets.common.dto.item.ItemType;
 
 import java.util.UUID;
 
@@ -25,6 +27,10 @@ public class UserItemVotesEntity {
 
     @Column(name = "item_id", nullable = false)
     private String itemId;
+
+    @Convert(converter = ItemTypeConverter.class)
+    @Column(name = "item_type")
+    private ItemType itemType;
 
     @Column(name = "votes", nullable = false)
     private Integer votes;

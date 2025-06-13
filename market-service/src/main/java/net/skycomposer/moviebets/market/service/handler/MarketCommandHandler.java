@@ -57,6 +57,18 @@ public class MarketCommandHandler {
     public void handleSettleMarketCommand(@Payload SettleMarketCommand settleMarketCommand) {
         UUID marketId = settleMarketCommand.getMarketId();
         marketService.settle(marketId);
+
+        MarketData marketData = marketService.findMarketById(marketId);
+        MarketResult marketResult = marketData.getResult();
+        UserVotesUpdateCommand userVotesUpdateCommand = UserVotesUpdateCommand.builder()
+                .itemType(marketData.getItemType())
+                .itemWon(marketResult == MarketResult.ITEM1_WINS ? marketData.getItem1Id() : marketData.getItem2Id())
+                .itemLost(marketResult == MarketResult.ITEM1_WINS ? marketData.getItem2Id() : marketData.getItem1Id())
+                .item1Won(marketResult == MarketResult.ITEM1_WINS)
+                .marketId(marketId)
+                .build();
+        kafkaTemplate.send(userVotesTopicName, USER_VOTES_SINGLE_KEY_ID, userVotesUpdateCommand);
+
         MarketSettledEvent marketSettledEvent = new MarketSettledEvent(marketId, settleMarketCommand.getWinResult());
         kafkaTemplate.send(betSettleTopicName, marketId.toString(), marketSettledEvent);
     }
@@ -67,15 +79,6 @@ public class MarketCommandHandler {
         UUID marketId = marketCloseConfirmedEvent.getMarketId();
         MarketResult marketResult = marketCloseConfirmedEvent.getMarketResult();
         marketService.marketCloseConfirmed(marketId, marketResult);
-        MarketData marketData = marketService.findMarketById(marketCloseConfirmedEvent.getMarketId());
-        UserVotesUpdateCommand userVotesUpdateCommand = UserVotesUpdateCommand.builder()
-                .itemType(marketData.getItemType())
-                .itemWon(marketResult == MarketResult.ITEM1_WINS ? marketData.getItem1Id() : marketData.getItem2Id())
-                .itemLost(marketResult == MarketResult.ITEM1_WINS ? marketData.getItem2Id() : marketData.getItem1Id())
-                .item1Won(marketResult == MarketResult.ITEM1_WINS)
-                .marketId(marketId)
-                .build();
-        kafkaTemplate.send(userVotesTopicName, USER_VOTES_SINGLE_KEY_ID, userVotesUpdateCommand);
     }
 
     @KafkaHandler

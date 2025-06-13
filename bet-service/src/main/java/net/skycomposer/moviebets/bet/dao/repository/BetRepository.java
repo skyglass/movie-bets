@@ -13,9 +13,9 @@ import org.springframework.stereotype.Repository;
 
 import net.skycomposer.moviebets.bet.dao.entity.BetEntity;
 import net.skycomposer.moviebets.common.dto.bet.BetStatus;
+import net.skycomposer.moviebets.common.dto.bet.PlaceBetData;
 import net.skycomposer.moviebets.common.dto.bet.SumStakeData;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
-import net.skycomposer.moviebets.common.dto.market.MarketStatus;
 
 @Repository
 public interface BetRepository extends JpaRepository<BetEntity, UUID> {
@@ -24,9 +24,28 @@ public interface BetRepository extends JpaRepository<BetEntity, UUID> {
             "FROM BetEntity b WHERE b.marketId = :marketId AND b.status = 'VALIDATED' GROUP BY b.result")
     List<SumStakeData> findStakeSumGroupedByResult(@Param("marketId") UUID marketId);
 
+    @Query("""
+        SELECT new net.skycomposer.moviebets.common.dto.bet.PlaceBetData(
+            b.marketId,
+            b.item1Id,
+            b.item2Id,
+            b.item1Name,
+            b.item2Name,
+            b.itemType
+        )
+        FROM BetEntity b
+        WHERE (b.status = 'VALIDATED' OR b.status = 'PLACED')
+          AND NOT EXISTS (
+              SELECT 1 FROM BetEntity b2
+              WHERE b2.customerId = :userId AND b2.marketId = b.marketId
+          )
+        GROUP BY b.marketId, b.item1Id, b.item2Id, b.item1Name, b.item2Name, b.itemType
+    """)
+    List<PlaceBetData> findOpenMarketsExcludingWhereUserAlreadyPlacedBet(@Param("userId") String userId);
+
     List<BetEntity> findByMarketId(UUID marketId);
 
-    Long countByMarketIdAndStatus(UUID marketId, MarketStatus status);
+    Long countByMarketIdAndStatus(UUID marketId, BetStatus status);
 
     List<BetEntity> findByCustomerId(String marketId);
 
@@ -49,7 +68,7 @@ public interface BetRepository extends JpaRepository<BetEntity, UUID> {
     """)
     void settleBets(UUID marketId, BetStatus settleStartedStatus, BetStatus settledStatus, MarketResult winResult);
 
-    int countByMarketIdAndStatus(UUID marketId, BetStatus status);
+    int countByMarketIdAndStatusIn(UUID marketId,  List<BetStatus> statuses);
 
     int countByMarketIdAndStatusNotIn(UUID marketId, List<BetStatus> statuses);
 

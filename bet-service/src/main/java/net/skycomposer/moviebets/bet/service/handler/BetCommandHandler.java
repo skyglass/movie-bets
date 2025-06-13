@@ -122,8 +122,8 @@ public class BetCommandHandler {
     public void handleUserBetPairMarketOpenedEvent(@Payload UserBetPairMarketOpenedEvent event) {
         BetData bet1 = createBet(event, event.getUser1Id(), MarketResult.ITEM1_WINS);
         BetData bet2 = createBet(event, event.getUser2Id(), MarketResult.ITEM2_WINS);
-        betService.place(bet1, bet1.getCustomerId());
-        betService.place(bet2, bet2.getCustomerId());
+        betService.placeBet(bet1, bet1.getCustomerId());
+        betService.placeBet(bet2, bet2.getCustomerId());
     }
 
     @KafkaHandler
