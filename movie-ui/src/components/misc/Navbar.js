@@ -2,7 +2,7 @@ import React from 'react'
 import { useKeycloak } from '@react-keycloak/web'
 import { NavLink } from 'react-router-dom'
 import { Container, Dropdown, Menu } from 'semantic-ui-react'
-import { isAdmin } from '../misc/Helpers'
+import { getUsername, isAdmin } from '../misc/Helpers'
 import { useNavigate } from 'react-router-dom'
 
 function Navbar() {
@@ -18,8 +18,8 @@ function Navbar() {
     }
   }
 
-  const getUsername = () => {
-    return keycloak.authenticated && keycloak.tokenParsed?.preferred_username
+  const username = () => {
+    return keycloak.authenticated && getUsername(keycloak)
   }
 
   const getLogInOutText = () => {
@@ -43,7 +43,7 @@ function Navbar() {
         </Dropdown>
         <Menu.Menu position='right'>
           {keycloak.authenticated &&
-            <Dropdown text={`Hi ${getUsername()}`} pointing className='link item'>
+            <Dropdown text={`Hi ${username()}`} pointing className='link item'>
               <Dropdown.Menu>
                 <Dropdown.Item as={NavLink} to="/settings">Settings</Dropdown.Item>
               </Dropdown.Menu>

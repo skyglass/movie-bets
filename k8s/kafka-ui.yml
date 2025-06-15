@@ -26,6 +26,8 @@ spec:
           value: "true"
         - name: LOGGING_LEVEL_ROOT
           value: "INFO"
+        - name: SERVER_SERVLET_CONTEXT_PATH
+          value: "/kafka-ui"
 
 ---
 apiVersion: v1

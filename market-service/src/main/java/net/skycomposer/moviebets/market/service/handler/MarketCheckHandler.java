@@ -45,7 +45,7 @@ public class MarketCheckHandler {
             KafkaTemplate<String, Object> kafkaTemplate,
             @Value("${bet.settle.topic.name}") String betSettleTopicName,
             @Value("${bet.commands.topic.name}") String betCommandsTopicName,
-            @Value("${market.close.check-time.threshold-seconds}") Long checkTimeThresholdSeconds
+            @Value("${market.check.check-time.threshold-seconds}") Long checkTimeThresholdSeconds
     ) {
         this.marketRepository = marketRepository;
         this.marketCheckRepository = marketCheckRepository;

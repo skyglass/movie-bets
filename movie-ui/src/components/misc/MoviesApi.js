@@ -8,7 +8,9 @@ export const moviesApi = {
   deleteMovie,
   addMovieComment,
   getUserExtrasMe,
-  saveUserExtrasMe
+  saveUserExtrasMe,
+  getMovieVoteStatuses,
+  placeVote
 }
 
 function getMovies() {
@@ -45,6 +47,18 @@ function getUserExtrasMe(token) {
 
 function saveUserExtrasMe(token, userExtra) {
   return instance.post(`/api/movie/userextras/me`, userExtra, {
+    headers: { 'Authorization': bearerAuth(token) }
+  })
+}
+
+function getMovieVoteStatuses(token, imdbIds) {
+  return instance.post(`/api/bet/get-movie-vote-statuses`, { ids: imdbIds }, {
+    headers: { 'Authorization': bearerAuth(token) }
+  })
+}
+
+function placeVote(token, voteRequest) {
+  return instance.post(`/api/bet/place-request`, voteRequest, {
     headers: { 'Authorization': bearerAuth(token) }
   })
 }

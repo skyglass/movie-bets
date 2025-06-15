@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import net.skycomposer.moviebets.bet.dao.entity.UserItemStatusEntity;
+import net.skycomposer.moviebets.bet.dao.repository.BetRepository;
 import net.skycomposer.moviebets.bet.dao.repository.UserItemStatusRepository;
 import net.skycomposer.moviebets.bet.exception.UserItemStatusRequestDeniedException;
-import net.skycomposer.moviebets.bet.service.UserItemStatusService;
 import net.skycomposer.moviebets.common.dto.bet.UserItemStatusResponse;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserBetPairOpenMarketCommand;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
@@ -22,7 +22,7 @@ public class UserItemStatusApplicationService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    private final UserItemStatusService userItemStatusService;
+    private final BetRepository betRepository;
 
     private final UserItemStatusRepository userItemStatusRepository;
 
@@ -32,13 +32,13 @@ public class UserItemStatusApplicationService {
 
     private final String marketCommandsTopicName;
 
-    public UserItemStatusApplicationService(final UserItemStatusService userItemStatusService,
+    public UserItemStatusApplicationService(final BetRepository betRepository,
                                             final UserItemStatusRepository userItemStatusRepository,
                                             final KafkaTemplate<String, Object> kafkaTemplate,
                                             final @Value("${bet.commands.topic.name}") String betCommandsTopicName,
                                             final @Value("${user.item-status.topic.name}") String userItemStatusTopicName,
                                             final @Value("${market.commands.topic.name}") String marketCommandsTopicName) {
-        this.userItemStatusService = userItemStatusService;
+        this.betRepository = betRepository;
         this.userItemStatusRepository = userItemStatusRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.betCommandsTopicName = betCommandsTopicName;
@@ -61,12 +61,12 @@ public class UserItemStatusApplicationService {
 
     @Transactional
     public void openMarket(MarketOpenCheckCommand marketOpenCheckCommand) {
-        UserItemStatusEntity firstUserItemStatus = userItemStatusRepository.findFirstByStatus(UserItemStatus.VOTED).orElse(null);
+        UserItemStatusEntity firstUserItemStatus = userItemStatusRepository.findFirstByStatusAndNoMarketExists(UserItemStatus.VOTED).orElse(null);
         if (firstUserItemStatus == null) {
             return;
         }
         UserItemStatusEntity secondUserItemStatus = userItemStatusRepository
-                .findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNot(
+                .findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNotAndNoMarketExists(
                         UserItemStatus.VOTED,
                         firstUserItemStatus.getItemType(),
                         firstUserItemStatus.getUserId(),

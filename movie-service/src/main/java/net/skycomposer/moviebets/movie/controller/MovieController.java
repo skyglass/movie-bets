@@ -30,6 +30,13 @@ public class MovieController {
         return movieService.getMovies().stream().map(movieMapper::toMovieDto).toList();
     }
 
+    @PostMapping("/by-ids")
+    public List<MovieDto> getMoviesByIds(@RequestBody MovieIdsRequest request) {
+        return movieService.getMoviesByIds(request.getIds()).stream()
+                .map(movieMapper::toMovieDto)
+                .toList();
+    }
+
     @GetMapping("/{imdbId}")
     public MovieDto getMovie(@PathVariable String imdbId) {
         Movie movie = movieService.validateAndGetMovie(imdbId);

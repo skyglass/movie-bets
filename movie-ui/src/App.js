@@ -59,7 +59,7 @@ function App() {
         <Routes>
           <Route path='/' element={<Home />} />
           <Route path='/home' element={<Home />} />
-          <Route path='/movies/:id' element={<MovieDetail />} />
+          <Route path='/movies/:id/:canVote' element={<MovieDetail />} />
           <Route path="/movies" element={<PrivateRoute><MoviesPage /></PrivateRoute>} />
           <Route path="/wizard" element={<PrivateRoute><MovieWizard /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><UserSettings /></PrivateRoute>} />

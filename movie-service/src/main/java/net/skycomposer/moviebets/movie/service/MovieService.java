@@ -22,6 +22,10 @@ public class MovieService {
         return movieRepository.findAll();
     }
 
+    public List<Movie> getMoviesByIds(List<String> ids) {
+        return movieRepository.findAllById(ids);
+    }
+
     public Movie saveMovie(Movie movie) {
         return movieRepository.save(movie);
     }

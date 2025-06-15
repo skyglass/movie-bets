@@ -8,6 +8,10 @@ export const isAdmin = (keycloak) => {
   return keycloak?.tokenParsed?.resource_access?.['moviebets-app']?.roles?.includes('MOVIEBETS_MANAGER') ?? false
 }
 
+export const getUsername = (keycloak) => {
+  return keycloak.authenticated && keycloak.tokenParsed?.preferred_username
+}
+
 export const handleLogError = (error) => {
   if (error.response) {
     console.log(error.response.data)

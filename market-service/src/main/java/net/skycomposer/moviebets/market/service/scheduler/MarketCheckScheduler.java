@@ -28,7 +28,7 @@ public class MarketCheckScheduler {
             MarketCheckRepository marketCheckRepository,
             KafkaTemplate<String, Object> kafkaTemplate,
             @Value("${market.check.topic.name}") String marketCheckTopicName,
-            @Value("${market.close.check-time.threshold-seconds}") Long checkTimeThresholdSeconds
+            @Value("${market.check.check-time.threshold-seconds}") Long checkTimeThresholdSeconds
     ) {
         this.marketCheckRepository = marketCheckRepository;
         this.kafkaTemplate = kafkaTemplate;

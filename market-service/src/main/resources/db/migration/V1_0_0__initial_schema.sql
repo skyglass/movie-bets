@@ -31,4 +31,4 @@ CREATE TABLE market_check (
                         CONSTRAINT market_check_pkey PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX idx_market_check_id ON market_close_check (check_id);
+CREATE UNIQUE INDEX idx_market_check_id ON market_check (check_id);

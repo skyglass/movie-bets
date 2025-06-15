@@ -126,8 +126,8 @@ market:
     topic:
       name: market-check
     close-time:
-      default-minutes: 60
-      extend-seconds: 60
+      default-minutes: 5
+      extend-minutes: 1
     check-time:
       threshold-seconds: 5
 

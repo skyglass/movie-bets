@@ -11,10 +11,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.skycomposer.moviebets.bet.service.BetService;
+import net.skycomposer.moviebets.bet.service.UserItemStatusService;
 import net.skycomposer.moviebets.bet.service.UserItemVotesService;
 import net.skycomposer.moviebets.bet.service.application.UserItemStatusApplicationService;
 import net.skycomposer.moviebets.common.dto.bet.*;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
+import net.skycomposer.moviebets.common.dto.item.UserItemVoteStatusList;
+import net.skycomposer.moviebets.common.dto.movie.MovieIdsRequest;
 import net.skycomposer.moviebets.common.dto.votes.UserItemVotesList;
 
 @Slf4j
@@ -25,6 +28,8 @@ public class BetController {
     private final BetService betService;
 
     private final UserItemVotesService userItemVotesService;
+
+    private final UserItemStatusService userItemStatusService;
 
     private final UserItemStatusApplicationService userItemStatusApplicationService;
 
@@ -55,9 +60,24 @@ public class BetController {
         return userItemVotesService.getRecommendedMovies(authentication.getName());
     }
 
-    @GetMapping("/get-recommended-movies-excluding-voted")
-    public UserItemVotesList getRecommendedMoviesExcludingVoted(Authentication authentication) {
-        return userItemVotesService.getRecommendedMoviesExcludingVoted(authentication.getName());
+    @PostMapping("/get-movie-vote-statuses")
+    public UserItemVoteStatusList getMovieVoteStatuses(@RequestBody MovieIdsRequest request, Authentication authentication) {
+        return userItemStatusService.getMovieVoteStatuses(authentication.getName(), request.getIds());
+    }
+
+    @GetMapping("/get-recommended-movies-excluding-user-voted")
+    public UserItemVotesList getRecommendedMoviesExcludingUserVoted(Authentication authentication) {
+        return userItemVotesService.getRecommendedMoviesExcludingUserVoted(authentication.getName());
+    }
+
+    @GetMapping("/get-top-voted-movies")
+    public UserItemVotesList getTopVotedMovies(Authentication authentication) {
+        return userItemVotesService.getTopVotedMovies(authentication.getName());
+    }
+
+    @GetMapping("/get-top-voted-movies-excluding-user-voted")
+    public UserItemVotesList getTopVotedMoviesExcludingUserVoted(Authentication authentication) {
+        return userItemVotesService.getTopVotedMoviesExcludingUserVoted(authentication.getName());
     }
 
     @GetMapping("/get-open-markets")

@@ -5,7 +5,7 @@ import MovieCard from '../home/MovieCard'
 function CompleteStep({ movie }) {
   return (
     <Card.Group doubling centered>
-      <MovieCard movie={movie} link={false} />
+      <MovieCard movie={movie} link={false} canVote={true} />
     </Card.Group>
   )
 }

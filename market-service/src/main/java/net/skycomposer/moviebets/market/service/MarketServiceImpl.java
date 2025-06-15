@@ -40,7 +40,7 @@ public class MarketServiceImpl implements MarketService {
 
     private final String betSettleTopicName;
 
-    private final Integer marketCloseTimeExtendSeconds;
+    private final Integer marketCloseTimeExtendMinutes;
 
     private final Integer marketCloseTimeDefaultMinutes;
 
@@ -49,14 +49,14 @@ public class MarketServiceImpl implements MarketService {
             KafkaTemplate<String, Object> kafkaTemplate,
             @Value("${bet.commands.topic.name}") String betCommandsTopicName,
             @Value("${bet.settle.topic.name}") String betSettleTopicName,
-            @Value("${market.close.close-time.extend-seconds}") Integer marketCloseTimeExtendSeconds,
-            @Value("${market.close.close-time.default-minutes}") Integer marketCloseTimeDefaultMinutes
+            @Value("${market.check.close-time.extend-minutes}") Integer marketCloseTimeExtendMinutes,
+            @Value("${market.check.close-time.default-minutes}") Integer marketCloseTimeDefaultMinutes
     ) {
         this.marketRepository = marketRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.betCommandsTopicName = betCommandsTopicName;
         this.betSettleTopicName = betSettleTopicName;
-        this.marketCloseTimeExtendSeconds = marketCloseTimeExtendSeconds;
+        this.marketCloseTimeExtendMinutes = marketCloseTimeExtendMinutes;
         this.marketCloseTimeDefaultMinutes = marketCloseTimeDefaultMinutes;
     }
 
@@ -144,7 +144,7 @@ public class MarketServiceImpl implements MarketService {
     public MarketResponse marketCloseFailed(UUID marketId) {
         MarketEntity marketEntity = marketRepository.findById(marketId)
                 .orElseThrow(() -> new MarketNotFoundException(marketId));
-        Instant newClosesAt = now().plus(Duration.ofSeconds(marketCloseTimeExtendSeconds));
+        Instant newClosesAt = now().plus(Duration.ofMinutes(marketCloseTimeExtendMinutes));
         marketEntity.setClosesAt(newClosesAt);
         marketRepository.save(marketEntity);
         return new MarketResponse(marketId,

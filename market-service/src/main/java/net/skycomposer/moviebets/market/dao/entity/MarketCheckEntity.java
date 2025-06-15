@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.UUID;
 
-@Table(name = "market_close_check")
+@Table(name = "market_check")
 @Entity
 @Data // Generates getters, setters, toString, equals, and hashCode
 @NoArgsConstructor

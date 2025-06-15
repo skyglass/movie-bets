@@ -22,6 +22,53 @@ public interface UserItemVotesRepository extends JpaRepository<UserItemVotesEnti
                 utv.itemId,
                 utv.itemType,
                 true,
+                SUM(utv.votes)
+            )
+            FROM UserItemVotesEntity utv
+            WHERE utv.itemType = :itemType
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM UserItemStatusEntity uis
+                  WHERE uis.userId = :userId
+                    AND uis.itemId = utv.itemId
+                    AND uis.itemType = :itemType
+              )
+            GROUP BY utv.itemId, utv.itemType
+            ORDER BY SUM(utv.votes) DESC
+        """)
+        List<UserItemVotes> findTopVotedExcludingUserVoted(
+                @Param("userId")   String   userId,
+                @Param("itemType") ItemType itemType
+        );
+
+        @Query("""
+            SELECT new net.skycomposer.moviebets.common.dto.votes.UserItemVotes(
+                :userId,
+                utv.itemId,
+                utv.itemType,
+                CASE WHEN COUNT(uis) = 0 THEN true ELSE false END,
+                SUM(utv.votes)
+            )
+            FROM UserItemVotesEntity utv
+            LEFT JOIN UserItemStatusEntity uis
+              ON uis.userId = :userId
+              AND uis.itemId = utv.itemId
+              AND uis.itemType = :itemType
+            WHERE utv.itemType = :itemType
+            GROUP BY utv.itemId, utv.itemType
+            ORDER BY SUM(utv.votes) DESC
+        """)
+        List<UserItemVotes> findTopVotedWithUserCanVoteFlag(
+                @Param("userId")   String   userId,
+                @Param("itemType") ItemType itemType
+        );
+
+        @Query("""
+            SELECT new net.skycomposer.moviebets.common.dto.votes.UserItemVotes(
+                :userId,
+                utv.itemId,
+                utv.itemType,
+                true,
                 SUM(utv.votes * ufw.weight)
             )
             FROM UserItemVotesEntity utv
@@ -39,7 +86,7 @@ public interface UserItemVotesRepository extends JpaRepository<UserItemVotesEnti
             GROUP BY utv.itemId, utv.itemType
             ORDER BY SUM(utv.votes * ufw.weight) DESC
         """)
-        List<UserItemVotes> findFriendWeightedVotesExcludingVoted(
+        List<UserItemVotes> findFriendWeightedVotesExcludingUserVoted(
                 @Param("userId")   String   userId,
                 @Param("itemType") ItemType itemType
         );
@@ -64,7 +111,7 @@ public interface UserItemVotesRepository extends JpaRepository<UserItemVotesEnti
             GROUP BY utv.itemId, utv.itemType
             ORDER BY SUM(utv.votes * ufw.weight) DESC
         """)
-        List<UserItemVotes> findFriendWeightedVotesWithVotedFlag(
+        List<UserItemVotes> findFriendWeightedVotesWithUserCanVoteFlag(
                 @Param("userId")   String   userId,
                 @Param("itemType") ItemType itemType
         );

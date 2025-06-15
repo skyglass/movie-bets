@@ -30,14 +30,26 @@ public class UserItemVotesService {
     }
 
     @Transactional(readOnly = true)
-    public UserItemVotesList getRecommendedMoviesExcludingVoted(String userId) {
-        List<UserItemVotes> result = userItemVotesRepository.findFriendWeightedVotesExcludingVoted(userId, ItemType.MOVIE);
+    public UserItemVotesList getRecommendedMoviesExcludingUserVoted(String userId) {
+        List<UserItemVotes> result = userItemVotesRepository.findFriendWeightedVotesExcludingUserVoted(userId, ItemType.MOVIE);
         return new UserItemVotesList(result);
     }
 
     @Transactional(readOnly = true)
     public UserItemVotesList getRecommendedMovies(String userId) {
-        List<UserItemVotes> result = userItemVotesRepository.findFriendWeightedVotesWithVotedFlag(userId, ItemType.MOVIE);
+        List<UserItemVotes> result = userItemVotesRepository.findFriendWeightedVotesWithUserCanVoteFlag(userId, ItemType.MOVIE);
+        return new UserItemVotesList(result);
+    }
+
+    @Transactional(readOnly = true)
+    public UserItemVotesList getTopVotedMoviesExcludingUserVoted(String userId) {
+        List<UserItemVotes> result = userItemVotesRepository.findTopVotedExcludingUserVoted(userId, ItemType.MOVIE);
+        return new UserItemVotesList(result);
+    }
+
+    @Transactional(readOnly = true)
+    public UserItemVotesList getTopVotedMovies(String userId) {
+        List<UserItemVotes> result = userItemVotesRepository.findTopVotedWithUserCanVoteFlag(userId, ItemType.MOVIE);
         return new UserItemVotesList(result);
     }
 }

@@ -22,7 +22,8 @@ public class MarketTestDataService extends JdbcTestDataService {
 
     @Override
     public void resetDatabase() {
-        executeString("DELETE FROM market");
+        executeString("TRUNCATE market");
+        executeString("TRUNCATE market_check");
     }
 
 }

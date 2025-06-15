@@ -34,7 +34,7 @@ public interface BetRepository extends JpaRepository<BetEntity, UUID> {
             b.itemType
         )
         FROM BetEntity b
-        WHERE (b.status = 'VALIDATED' OR b.status = 'PLACED')
+        WHERE b.status = 'VALIDATED'
           AND NOT EXISTS (
               SELECT 1 FROM BetEntity b2
               WHERE b2.customerId = :userId AND b2.marketId = b.marketId

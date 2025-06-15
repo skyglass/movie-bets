@@ -12,7 +12,7 @@ import net.skycomposer.moviebets.bet.service.UserItemStatusService;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
 
 @Component
-@KafkaListener(topics = "${user.item-status.topic.name}", groupId = "${spring.kafka.consumer.user-item-status.group-id}")
+@KafkaListener(topics = "${user.item-status.topic.name}", groupId = "${spring.kafka.consumer.item-status.group-id}")
 @RequiredArgsConstructor
 public class UserItemStatusHandler {
 

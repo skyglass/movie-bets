@@ -1,5 +1,7 @@
 package net.skycomposer.moviebets.bet.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,8 @@ import net.skycomposer.moviebets.bet.dao.repository.UserItemStatusRepository;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
 import net.skycomposer.moviebets.common.dto.item.ItemType;
 import net.skycomposer.moviebets.common.dto.item.UserItemStatus;
+import net.skycomposer.moviebets.common.dto.item.UserItemVoteStatus;
+import net.skycomposer.moviebets.common.dto.item.UserItemVoteStatusList;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,15 @@ public class UserItemStatusService {
             return false;
         }
         return true;
+    }
+
+    public UserItemVoteStatusList getMovieVoteStatuses(String userId, List<String> itemIds) {
+        List<String> existingItemIds = userItemStatusRepository.findExistingItemIds(userId, ItemType.MOVIE, itemIds);
+
+        return new UserItemVoteStatusList(itemIds.stream()
+                .map(id -> new UserItemVoteStatus(id, existingItemIds.contains(id)))
+                .toList()
+        );
     }
 
     private boolean userItemExists(String userId, String itemId, ItemType itemType){

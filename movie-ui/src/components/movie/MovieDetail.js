@@ -14,7 +14,8 @@ function MovieDetail() {
   const [commentText, setCommentText] = useState('')
   
   const { keycloak } = useKeycloak()
-  const { id } = useParams()
+  const { id, canVote: canVoteParam } = useParams()
+  const canVote = canVoteParam === 'true'
 
   useEffect(() => {
     const imdbId = id
@@ -62,7 +63,7 @@ function MovieDetail() {
         <Grid columns={2} stackable>
           <Grid.Row>
             <Grid.Column width={5}>
-              <MovieCard movie={movie} link={false} />
+              <MovieCard movie={movie} link={false} canVote={canVote} />
             </Grid.Column>
             <Grid.Column width={11}>
               <MovieCommentForm
