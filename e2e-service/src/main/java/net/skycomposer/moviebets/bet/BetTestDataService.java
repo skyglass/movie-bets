@@ -24,6 +24,7 @@ public class BetTestDataService extends JdbcTestDataService {
     public void resetDatabase() {
         executeString("TRUNCATE bet");
         executeString("TRUNCATE market_settle_status");
+        executeString("TRUNCATE market_open_status");
         executeString("TRUNCATE bet_settle_request");
         executeString("TRUNCATE user_item_status");
         executeString("TRUNCATE user_item_votes");

@@ -119,67 +119,59 @@ public interface UserItemVotesRepository extends JpaRepository<UserItemVotesEnti
 
         @Modifying
         @Query(value = """
-            
-                WITH
-            -- Insert or update votes for itemWon
-            upsert_item_won AS (
-                INSERT INTO user_item_votes (id, user_id, item_id, item_type, votes)
-                SELECT gen_random_uuid(), customer_id, :itemWon, :itemType, 1
-                FROM bet
-                WHERE market_id = :marketId
-                  AND status = 'SETTLED'
-                  AND bet_won = TRUE
-                ON CONFLICT (user_id, item_id, item_type) DO UPDATE SET votes = user_item_votes.votes + 1
-            ),
-            -- Insert or update votes for itemLost
-            upsert_item_lost AS (
-                INSERT INTO user_item_votes (id, user_id, item_id, item_type, votes)
-                SELECT gen_random_uuid(), customer_id, :itemLost, :itemType, 1
-                FROM bet
-                WHERE market_id = :marketId
-                  AND status = 'SETTLED'
-                  AND bet_won = FALSE
-                ON CONFLICT (user_id, item_id, item_type) DO UPDATE SET votes = user_item_votes.votes + 1
-            ),
-            -- Get all users who won
+            INSERT INTO user_item_votes (id, user_id, item_id, item_type, votes)
+            SELECT gen_random_uuid(), customer_id, :itemId, :itemType, 1
+            FROM bet
+            WHERE market_id = :marketId
+              AND status = 'SETTLED'
+              AND bet_won = :won
+            ON CONFLICT (user_id, item_id, item_type) DO UPDATE
+            SET votes = user_item_votes.votes + 1
+        """, nativeQuery = true)
+        void upsertUserVotes(@Param("marketId") UUID marketId,
+                             @Param("itemId") String itemId,
+                             @Param("itemType") Integer itemType,
+                             @Param("won") boolean won);
+
+        @Modifying
+        @Query(value = """
+            WITH
             winning_users AS (
                 SELECT DISTINCT customer_id
                 FROM bet
-^                WHERE market_id = :marketId AND bet_won = TRUE AND status = 'SETTLED'
+                WHERE market_id = :marketId
+                  AND bet_won = TRUE
+                  AND status = 'SETTLED'
             ),
-            -- Get all users who lost
             losing_users AS (
                 SELECT DISTINCT customer_id
                 FROM bet
-                WHERE market_id = :marketId AND bet_won = FALSE AND status = 'SETTLED'
+                WHERE market_id = :marketId
+                  AND bet_won = FALSE
+                  AND status = 'SETTLED'
             ),
-            -- Create user-user pairs for winners
             winner_pairs AS (
                 SELECT wu1.customer_id AS user_id, wu2.customer_id AS friend_id
                 FROM winning_users wu1, winning_users wu2
                 WHERE wu1.customer_id <> wu2.customer_id
             ),
-            -- Create user-user pairs for losers
             loser_pairs AS (
                 SELECT lu1.customer_id AS user_id, lu2.customer_id AS friend_id
                 FROM losing_users lu1, losing_users lu2
                 WHERE lu1.customer_id <> lu2.customer_id
             ),
-            -- Combine all user-user weight updates
             all_pairs AS (
                 SELECT * FROM winner_pairs
                 UNION ALL
                 SELECT * FROM loser_pairs
             )
-            -- Insert or update weights
             INSERT INTO user_friend_weight (id, user_id, friend_id, weight)
             SELECT gen_random_uuid(), user_id, friend_id, 1
             FROM all_pairs
-            ON CONFLICT (user_id, friend_id) DO UPDATE SET weight = user_friend_weight.weight + 1;
+            ON CONFLICT (user_id, friend_id) DO UPDATE
+            SET weight = user_friend_weight.weight + 1
+            ;
         """, nativeQuery = true)
-        void updateUserVotesAndFriendWeights(@Param("marketId") UUID marketId,
-                                             @Param("itemWon") String itemWon,
-                                             @Param("itemLost") String itemLost,
-                                             @Param("itemType") Integer itemType);
+        void updateUserFriendWeights(@Param("marketId") UUID marketId);
 
 }

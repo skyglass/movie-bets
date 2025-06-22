@@ -37,8 +37,8 @@ const LandingPage = () => {
     const eventList = events.map((event) => {
         return (
             <tr key={event.marketId}>
-                <td>{event.item1}</td>
-                <td>{event.item2}</td>
+                <td>{event.item1Name}</td>
+                <td>{event.item2Name}</td>
 
                 <td>{getEventResultText(event.open, event.result)}</td>
 

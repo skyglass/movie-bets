@@ -51,7 +51,7 @@ public class BetE2eTest extends E2eTest {
         MarketResult marketResult = MarketResult.ITEM2_WINS;
 
         CustomerResponse customerResponse = customerTestHelper.createCustomer(customerId, fundRequestId, customerBalance);
-        Thread.sleep(1200);
+        Thread.sleep(1600);
         //Duplicate request with the same request id to make sure that duplicates are handled correctly
         try {
             customerResponse = customerTestHelper.createCustomer(customerId, fundRequestId, customerBalance);

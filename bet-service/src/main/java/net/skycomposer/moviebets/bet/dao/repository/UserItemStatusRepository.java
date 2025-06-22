@@ -1,9 +1,9 @@
 package net.skycomposer.moviebets.bet.dao.repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,13 +35,13 @@ public interface UserItemStatusRepository extends JpaRepository<UserItemStatusEn
         SELECT u FROM UserItemStatusEntity u
         WHERE u.status = :status
           AND NOT EXISTS (
-              SELECT 1 FROM BetEntity b
-              WHERE b.status = 'VALIDATED'
-                AND (b.item1Id = u.itemId OR b.item2Id = u.itemId)
-                AND b.itemType = u.itemType
+              SELECT 1 FROM MarketOpenStatusEntity m
+              WHERE m.status = 'OPENED'
+                AND m.itemType = u.itemType
+                AND (m.item1Id = u.itemId OR m.item2Id = u.itemId)
           )
     """)
-    Optional<UserItemStatusEntity> findFirstByStatusAndNoMarketExists(@Param("status") UserItemStatus status);
+    List<UserItemStatusEntity> findFirstByStatusAndNoOpenMarketExists(@Param("status") UserItemStatus status, Pageable pageable);
 
     @Query("""
         SELECT u FROM UserItemStatusEntity u
@@ -50,17 +50,18 @@ public interface UserItemStatusRepository extends JpaRepository<UserItemStatusEn
           AND u.userId <> :excludedUserId
           AND u.itemId <> :excludedItemId
           AND NOT EXISTS (
-              SELECT 1 FROM BetEntity b
-              WHERE b.status = 'VALIDATED'
-                AND (b.item1Id = u.itemId OR b.item2Id = u.itemId)
-                AND b.itemType = u.itemType
+              SELECT 1 FROM MarketOpenStatusEntity m
+              WHERE m.status = 'OPENED'
+                AND m.itemType = u.itemType
+                AND (m.item1Id = u.itemId OR m.item2Id = u.itemId)
           )
     """)
-    Optional<UserItemStatusEntity> findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNotAndNoMarketExists(
+    List<UserItemStatusEntity> findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNotAndNoOpenMarketExists(
             @Param("status") UserItemStatus status,
             @Param("itemType") ItemType itemType,
             @Param("excludedUserId") String excludedUserId,
-            @Param("excludedItemId") String excludedItemId
+            @Param("excludedItemId") String excludedItemId,
+            Pageable pageable
     );
 
 }

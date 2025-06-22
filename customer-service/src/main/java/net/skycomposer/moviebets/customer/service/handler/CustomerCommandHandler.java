@@ -19,10 +19,6 @@ import net.skycomposer.moviebets.common.dto.customer.events.FundsSettledEvent;
 import net.skycomposer.moviebets.customer.exception.CustomerInsufficientFundsException;
 import net.skycomposer.moviebets.customer.service.CustomerService;
 
-import java.time.Duration;
-
-import static java.time.Instant.now;
-
 @Component
 @KafkaListener(topics = "${customer.commands.topic.name}", groupId = "${spring.kafka.consumer.group-id}")
 public class CustomerCommandHandler {
@@ -70,30 +66,11 @@ public class CustomerCommandHandler {
                     command.getMarketId(), command.getFunds(), customerResponse.getCurrentBalance());
             kafkaTemplate.send(betSettleTopicName, command.getMarketId().toString(), fundsReservedEvent);
         } catch (CustomerInsufficientFundsException e) {
-            boolean isRetryTimeout = now().minus(Duration.ofSeconds(command.getRetryTimeoutSeconds())).isAfter(command.getRetryStart());
-            if (isRetryTimeout
-                    || (command.getTotalRetries().intValue() != -1
-                        && (command.getRetryCount().intValue() == command.getTotalRetries().intValue()))) {
-                logger.error(e.getLocalizedMessage(), e);
-                FundReservationFailedEvent fundReservationFailedEvent = new FundReservationFailedEvent(
-                        command.getBetId(), command.getCustomerId(),
-                        e.getRequiredAmount(), e.getAvailableAmount());
-                kafkaTemplate.send(customerEventsDlqTopicName, command.getCustomerId().toString(), fundReservationFailedEvent);
-            } else {
-                ReserveFundsCommand reserveFundsCommand = new ReserveFundsCommand(
-                        command.getBetId(),
-                        command.getCustomerId(),
-                        command.getMarketId(),
-                        command.getRequestId(),
-                        command.getCancelRequestId(),
-                        command.getFunds(),
-                        command.getRetryCount() + 1,
-                        command.getTotalRetries(),
-                        command.getRetryTimeoutSeconds(),
-                        command.getRetryStart()
-                );
-                kafkaTemplate.send(customerCommandsTopicName, command.getCustomerId(), reserveFundsCommand);
-            }
+            logger.error(e.getLocalizedMessage(), e);
+            FundReservationFailedEvent fundReservationFailedEvent = new FundReservationFailedEvent(
+                    command.getBetId(), command.getCustomerId(),
+                    e.getRequiredAmount(), e.getAvailableAmount());
+            handleFundReservationFailed(fundReservationFailedEvent);
         }
     }
 
@@ -134,7 +111,12 @@ public class CustomerCommandHandler {
             FundReservationFailedEvent fundReservationFailedEvent = new FundReservationFailedEvent(
                     command.getRequestId(), command.getCustomerId(),
                     e.getRequiredAmount(), e.getAvailableAmount());
-            kafkaTemplate.send(customerEventsDlqTopicName, command.getCustomerId().toString(), fundReservationFailedEvent);
+            handleFundReservationFailed(fundReservationFailedEvent);
         }
+    }
+
+    private void handleFundReservationFailed(FundReservationFailedEvent fundReservationFailedEvent) {
+        kafkaTemplate.send(customerEventsDlqTopicName, fundReservationFailedEvent.getCustomerId(), fundReservationFailedEvent);
+        kafkaTemplate.send(customerEventsTopicName, fundReservationFailedEvent.getCustomerId(), fundReservationFailedEvent);
     }
 }

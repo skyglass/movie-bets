@@ -15,15 +15,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import net.skycomposer.moviebets.bet.dao.entity.BetEntity;
 import net.skycomposer.moviebets.bet.dao.entity.BetSettleRequestEntity;
+import net.skycomposer.moviebets.bet.dao.entity.MarketOpenStatusEntity;
 import net.skycomposer.moviebets.bet.dao.entity.MarketSettleStatusEntity;
 import net.skycomposer.moviebets.bet.dao.repository.BetRepository;
 import net.skycomposer.moviebets.bet.dao.repository.BetSettleRequestRepository;
+import net.skycomposer.moviebets.bet.dao.repository.MarketOpenStatusRepository;
 import net.skycomposer.moviebets.bet.dao.repository.MarketSettleStatusRepository;
 import net.skycomposer.moviebets.bet.exception.*;
 import net.skycomposer.moviebets.common.dto.bet.*;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
 import net.skycomposer.moviebets.common.dto.bet.events.BetCreatedEvent;
+import net.skycomposer.moviebets.common.dto.market.MarketOpenStatus;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
+import net.skycomposer.moviebets.common.dto.market.events.MarketOpenedEvent;
 
 @Service
 public class BetServiceImpl implements BetService {
@@ -33,6 +37,8 @@ public class BetServiceImpl implements BetService {
     private final BetRepository betRepository;
 
     private final MarketSettleStatusRepository marketSettleStatusRepository;
+
+    private final MarketOpenStatusRepository marketOpenStatusRepository;
 
     private final BetSettleRequestRepository betSettleRequestRepository;
 
@@ -46,6 +52,7 @@ public class BetServiceImpl implements BetService {
     public BetServiceImpl(
             final BetRepository betRepository,
             final MarketSettleStatusRepository marketSettleStatusRepository,
+            final MarketOpenStatusRepository marketOpenStatusRepository,
             final BetSettleRequestRepository betSettleRequestRepository,
             final KafkaTemplate<String, Object> kafkaTemplate,
             final @Value("${bet.commands.topic.name}") String betCommandsTopicName,
@@ -53,6 +60,7 @@ public class BetServiceImpl implements BetService {
     ) {
         this.betRepository = betRepository;
         this.marketSettleStatusRepository = marketSettleStatusRepository;
+        this.marketOpenStatusRepository = marketOpenStatusRepository;
         this.betSettleRequestRepository = betSettleRequestRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.betCommandsTopicName = betCommandsTopicName;
@@ -263,6 +271,30 @@ public class BetServiceImpl implements BetService {
     public void marketSettleDone(UUID marketId, MarketResult winResult) {
         betSettleRequestRepository.deleteByMarketId(marketId);
         betRepository.settleBets(marketId, BetStatus.SETTLE_STARTED, BetStatus.SETTLED, winResult);
+    }
+
+    @Override
+    @Transactional
+    public void updateMarketOpenStatus(UUID marketId, MarketOpenStatus status) {
+        MarketOpenStatusEntity marketOpenStatusEntity = marketOpenStatusRepository.findByMarketId(marketId)
+                .orElseThrow(() -> new MarketOpenStatusNotFoundException(marketId));
+        marketOpenStatusEntity.setStatus(status);
+        marketOpenStatusRepository.save(marketOpenStatusEntity);
+    }
+
+    @Override
+    @Transactional
+    public void updateMarketOpenStatus(MarketOpenedEvent marketOpenedEvent) {
+        if (!marketOpenStatusRepository.existsByMarketId(marketOpenedEvent.getMarketId())) {
+            MarketOpenStatusEntity marketOpenStatusEntity = MarketOpenStatusEntity.builder()
+                    .marketId(marketOpenedEvent.getMarketId())
+                    .item1Id(marketOpenedEvent.getItem1Id())
+                    .item2Id(marketOpenedEvent.getItem2Id())
+                    .itemType(marketOpenedEvent.getItemType())
+                    .status(MarketOpenStatus.OPENED)
+                    .build();
+            marketOpenStatusRepository.save(marketOpenStatusEntity);
+        }
     }
 
     private BetData createBetData(BetEntity betEntity) {

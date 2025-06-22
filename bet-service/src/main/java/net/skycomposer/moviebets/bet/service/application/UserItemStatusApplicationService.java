@@ -1,8 +1,10 @@
 package net.skycomposer.moviebets.bet.service.application;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,20 +63,22 @@ public class UserItemStatusApplicationService {
 
     @Transactional
     public void openMarket(MarketOpenCheckCommand marketOpenCheckCommand) {
-        UserItemStatusEntity firstUserItemStatus = userItemStatusRepository.findFirstByStatusAndNoMarketExists(UserItemStatus.VOTED).orElse(null);
-        if (firstUserItemStatus == null) {
+        List<UserItemStatusEntity> firstUserItemStatusList = userItemStatusRepository.findFirstByStatusAndNoOpenMarketExists(UserItemStatus.VOTED, PageRequest.of(0, 1));
+        if (firstUserItemStatusList.isEmpty()) {
             return;
         }
-        UserItemStatusEntity secondUserItemStatus = userItemStatusRepository
-                .findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNotAndNoMarketExists(
+        UserItemStatusEntity firstUserItemStatus = firstUserItemStatusList.getFirst();
+        List<UserItemStatusEntity> secondUserItemStatusList = userItemStatusRepository
+                . findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNotAndNoOpenMarketExists(
                         UserItemStatus.VOTED,
                         firstUserItemStatus.getItemType(),
                         firstUserItemStatus.getUserId(),
-                        firstUserItemStatus.getItemId())
-                .orElse(null);
-        if (secondUserItemStatus == null) {
+                        firstUserItemStatus.getItemId(),
+                        PageRequest.of(0, 1));
+        if (secondUserItemStatusList.isEmpty()) {
             return;
         }
+        UserItemStatusEntity secondUserItemStatus = secondUserItemStatusList.getFirst();
         firstUserItemStatus.setStatus(UserItemStatus.BET_PLACED);
         userItemStatusRepository.save(firstUserItemStatus);
         secondUserItemStatus.setStatus(UserItemStatus.BET_PLACED);

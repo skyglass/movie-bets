@@ -142,9 +142,6 @@ customer:
   commands:
     topic:
       name: customer-commands
-    retry:
-      count: -1
-      timeout-seconds: 120
   events:
     topic:
       name: customer-events

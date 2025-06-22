@@ -19,6 +19,8 @@ import net.skycomposer.moviebets.common.dto.bet.commands.UserBetPairOpenMarketCo
 import net.skycomposer.moviebets.common.dto.bet.events.UserBetPairMarketOpenedEvent;
 import net.skycomposer.moviebets.common.dto.market.*;
 import net.skycomposer.moviebets.common.dto.market.commands.CloseMarketCommand;
+import net.skycomposer.moviebets.common.dto.market.events.MarketCancelledEvent;
+import net.skycomposer.moviebets.common.dto.market.events.MarketOpenedEvent;
 import net.skycomposer.moviebets.market.dao.entity.MarketEntity;
 import net.skycomposer.moviebets.market.dao.repository.MarketRepository;
 import net.skycomposer.moviebets.market.exception.MarketNotFoundException;
@@ -84,6 +86,13 @@ public class MarketServiceImpl implements MarketService {
         marketEntity.setClosesAt(market.getClosesAt());
         marketEntity.setStatus(MarketStatus.OPENED);
         marketEntity = marketRepository.save(marketEntity);
+        MarketOpenedEvent marketOpenedEvent = MarketOpenedEvent.builder()
+                .marketId(marketEntity.getId())
+                .item1Id(marketEntity.getItem1Id())
+                .item2Id(marketEntity.getItem2Id())
+                .itemType(marketEntity.getItemType())
+                .build();
+        kafkaTemplate.send(betSettleTopicName, marketEntity.getId().toString(), marketOpenedEvent);
         return new MarketResponse(marketEntity.getId(),
                 "Market %s opened successfully".formatted(marketEntity.getId()));
     }
@@ -102,7 +111,7 @@ public class MarketServiceImpl implements MarketService {
         marketEntity.setClosesAt(closesAt);
         marketEntity = marketRepository.save(marketEntity);
 
-        UserBetPairMarketOpenedEvent marketOpenedEvent = UserBetPairMarketOpenedEvent.builder()
+        UserBetPairMarketOpenedEvent userBetPairMarketOpenedEvent = UserBetPairMarketOpenedEvent.builder()
                 .user1Id(request.getUser1Id())
                 .user2Id(request.getUser2Id())
                 .item1Id(request.getItem1Id())
@@ -112,7 +121,14 @@ public class MarketServiceImpl implements MarketService {
                 .itemType(request.getItemType())
                 .marketId(marketEntity.getId())
                 .build();
-        kafkaTemplate.send(betCommandsTopicName, marketEntity.getId().toString(), marketOpenedEvent);
+        kafkaTemplate.send(betCommandsTopicName, marketEntity.getId().toString(), userBetPairMarketOpenedEvent);
+        MarketOpenedEvent marketOpenedEvent = MarketOpenedEvent.builder()
+                .marketId(marketEntity.getId())
+                .item1Id(userBetPairMarketOpenedEvent.getItem1Id())
+                .item2Id(userBetPairMarketOpenedEvent.getItem2Id())
+                .itemType(userBetPairMarketOpenedEvent.getItemType())
+                .build();
+        kafkaTemplate.send(betSettleTopicName, marketEntity.getId().toString(), marketOpenedEvent);
         return new MarketResponse(marketEntity.getId(),
                 "Market %s opened successfully".formatted(marketEntity.getId()));
     }
@@ -177,9 +193,13 @@ public class MarketServiceImpl implements MarketService {
         var marketId = request.getMarketId();
         MarketEntity marketEntity = marketRepository.findById(marketId).orElseThrow(
                 () -> new MarketNotFoundException(marketId));
-        marketEntity.setOpen(false);
-        marketEntity.setStatus(MarketStatus.CANCELLED);
-        marketRepository.save(marketEntity);
+        if (marketEntity.getStatus() == MarketStatus.OPENED) {
+            marketEntity.setOpen(false);
+            marketEntity.setStatus(MarketStatus.CANCELLED);
+            marketRepository.save(marketEntity);
+            MarketCancelledEvent marketCancelledEvent = new MarketCancelledEvent(marketId);
+            kafkaTemplate.send(betSettleTopicName, marketId.toString(), marketCancelledEvent);
+        }
         return new MarketResponse(marketId,
                 "Market %s cancelled successfully, reason: %s".formatted(marketId, request.getReason()));
     }

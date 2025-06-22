@@ -24,9 +24,11 @@ public class UserItemVotesService {
 
     @Transactional
     public void updateUserVotesAndFriendWeights(UserVotesUpdateCommand command) {
-        userItemVotesRepository.updateUserVotesAndFriendWeights(
-                command.getMarketId(), command.getItemWon(),
-                command.getItemLost(), command.getItemType().getValue());
+        userItemVotesRepository.upsertUserVotes(
+                command.getMarketId(), command.getItemWon(), command.getItemType().getValue(), true);
+        userItemVotesRepository.upsertUserVotes(
+                command.getMarketId(), command.getItemLost(), command.getItemType().getValue(), false);
+        userItemVotesRepository.updateUserFriendWeights(command.getMarketId());
     }
 
     @Transactional(readOnly = true)

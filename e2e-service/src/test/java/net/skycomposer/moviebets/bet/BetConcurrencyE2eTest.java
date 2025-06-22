@@ -50,7 +50,7 @@ public class BetConcurrencyE2eTest extends E2eTest {
         String customerId = UUID.randomUUID().toString();
         UUID fundRequestId = UUID.randomUUID();
         int customerBalance = 500;
-        int addFundsAmount = 5;
+        int addFundsAmount = 10;
         int beforeMarketCloseBalance = 0;
         int afterMarketCloseBalance = 10;
         UUID marketId;
@@ -83,6 +83,9 @@ public class BetConcurrencyE2eTest extends E2eTest {
             addedFunds.add(addFundsResult);
         }
 
+        // Wait until they are all done
+        CompletableFuture.allOf(addedFunds.toArray(new CompletableFuture[0])).join();
+
         List<CompletableFuture<BetResponse>> createdBets = new ArrayList<>();
         for (int i = 0; i < numberOfBets; i++) {
             String currentCustomerId = customers.get(i).toString();
@@ -92,18 +95,8 @@ public class BetConcurrencyE2eTest extends E2eTest {
             createdBets.add(betResponse);
         }
 
-        List<CompletableFuture<CustomerResponse>> addedFunds2 = new ArrayList<>();
-        for (int i = 0; i < numberOfBets; i++) {
-            String currentCustomerId = customers.get(i).toString();
-            CompletableFuture<CustomerResponse> addFundsResult = customerTestHelper
-                    .asyncAddFunds(currentCustomerId, UUID.randomUUID(), addFundsAmount);
-            addedFunds2.add(addFundsResult);
-        }
-
         // Wait until they are all done
         CompletableFuture.allOf(createdBets.toArray(new CompletableFuture[0])).join();
-        CompletableFuture.allOf(addedFunds.toArray(new CompletableFuture[0])).join();
-        CompletableFuture.allOf(addedFunds2.toArray(new CompletableFuture[0])).join();
 
         //Before market is closed, make sure that all bets are validated
         for (CompletableFuture<BetResponse> betFuture: createdBets) {

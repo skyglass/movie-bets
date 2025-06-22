@@ -22,13 +22,12 @@ import net.skycomposer.moviebets.common.dto.bet.SumStakesData;
 import net.skycomposer.moviebets.common.dto.bet.commands.SettleBetCommand;
 import net.skycomposer.moviebets.common.dto.customer.commands.CancelFundReservationCommand;
 import net.skycomposer.moviebets.common.dto.customer.events.FundsReservedEvent;
+import net.skycomposer.moviebets.common.dto.market.MarketOpenStatus;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
 import net.skycomposer.moviebets.common.dto.market.commands.CloseMarketCommand;
 import net.skycomposer.moviebets.common.dto.market.commands.SettleBetsCommand;
 import net.skycomposer.moviebets.common.dto.market.commands.SettleMarketCommand;
-import net.skycomposer.moviebets.common.dto.market.events.MarketCloseConfirmedEvent;
-import net.skycomposer.moviebets.common.dto.market.events.MarketCloseFailedEvent;
-import net.skycomposer.moviebets.common.dto.market.events.MarketSettledEvent;
+import net.skycomposer.moviebets.common.dto.market.events.*;
 
 @Component
 @KafkaListener(topics = "${bet.settle.topic.name}", groupId = "${spring.kafka.consumer.bet-settle.group-id}")
@@ -104,6 +103,8 @@ public class BetSettleHandler {
             SettleBetsCommand settleBetsCommand = new SettleBetsCommand(command.getMarketId(), winnerEarned, totalCount, winResult);
             kafkaTemplate.send(betSettleTopicName, command.getMarketId().toString(), settleBetsCommand);
 
+            betService.updateMarketOpenStatus(command.getMarketId(), MarketOpenStatus.CLOSED);
+
         } else {
             MarketCloseFailedEvent marketCloseFailedEvent = new MarketCloseFailedEvent(command.getMarketId());
             kafkaTemplate.send(marketCommandsTopicName, command.getMarketId().toString(), marketCloseFailedEvent);
@@ -114,6 +115,17 @@ public class BetSettleHandler {
     public void handleEvent(@Payload MarketSettledEvent event) {
         betService.marketSettleDone(event.getMarketId(), event.getWinResult());
     }
+
+    @KafkaHandler
+    public void handleEvent(@Payload MarketOpenedEvent event) {
+        betService.updateMarketOpenStatus(event);
+    }
+
+    @KafkaHandler
+    public void handleEvent(@Payload MarketCancelledEvent event) {
+        betService.updateMarketOpenStatus(event.getMarketId(), MarketOpenStatus.CANCELLED);
+    }
+
 
     @KafkaHandler
     @Transactional

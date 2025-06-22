@@ -1,7 +1,6 @@
 package net.skycomposer.moviebets.common.dto.customer.commands;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
@@ -20,8 +19,4 @@ public class ReserveFundsCommand {
     private UUID requestId;
     private UUID cancelRequestId;
     private BigDecimal funds;
-    private Integer retryCount;
-    private Integer totalRetries;
-    private Integer retryTimeoutSeconds;
-    private Instant retryStart;
 }
