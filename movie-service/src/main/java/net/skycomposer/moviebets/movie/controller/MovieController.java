@@ -51,7 +51,7 @@ public class MovieController {
         return movieMapper.toMovieDto(movie);
     }
 
-    @PutMapping("/{imdbId}")
+    @PutMapping("/admin/{imdbId}")
     public MovieDto updateMovie(@PathVariable String imdbId, @Valid @RequestBody UpdateMovieRequest updateMovieRequest) {
         Movie movie = movieService.validateAndGetMovie(imdbId);
         Movie.updateFrom(updateMovieRequest, movie);
@@ -59,7 +59,7 @@ public class MovieController {
         return movieMapper.toMovieDto(movie);
     }
 
-    @DeleteMapping("/{imdbId}")
+    @DeleteMapping("/admin/{imdbId}")
     public MovieDto deleteMovie(@PathVariable String imdbId) {
         Movie movie = movieService.validateAndGetMovie(imdbId);
         movieService.deleteMovie(movie);

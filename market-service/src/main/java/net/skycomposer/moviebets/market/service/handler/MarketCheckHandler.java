@@ -72,7 +72,7 @@ public class MarketCheckHandler {
         var now = Instant.now();
         var lastCheckTime = marketCheckEntity.getLastCheckAt();
         if (firstMarketCheck || lastCheckTime.plus(Duration.ofSeconds(checkTimeThresholdSeconds)).isBefore(now)) {
-            marketCheckEntity.setLastCheckAt(Instant.now());
+            marketCheckEntity.setLastCheckAt(now);
             marketCheckUpdated = true;
             marketCloseCheck(now);
             marketOpenCheck();

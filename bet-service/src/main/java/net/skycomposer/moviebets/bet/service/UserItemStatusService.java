@@ -21,13 +21,16 @@ public class UserItemStatusService {
     private final UserItemStatusRepository userItemStatusRepository;
 
     @Transactional
-    public boolean placeVote(UserItemStatusRequest userItemStatusRequest) {
-        boolean userItemExists = userItemExists(
+    public boolean placeOrUpdateVote(UserItemStatusRequest userItemStatusRequest) {
+        UserItemStatusEntity userItemStatusEntity = findBy(
                 userItemStatusRequest.getUserId(), userItemStatusRequest.getItemId(), userItemStatusRequest.getItemType());
-        if (!userItemExists) {
+        if (userItemStatusEntity == null) {
             createUserItemStatusEntity(userItemStatusRequest.getUserId(), userItemStatusRequest.getItemId(),
-                    userItemStatusRequest.getItemName(), userItemStatusRequest.getItemType());
+                    userItemStatusRequest.getItemName(), userItemStatusRequest.getItemType(), userItemStatusRequest.getUserItemStatus());
             return false;
+        } else if (userItemStatusEntity.getStatus() != userItemStatusRequest.getUserItemStatus()) {
+            userItemStatusEntity.setStatus(userItemStatusRequest.getUserItemStatus());
+            userItemStatusRepository.save(userItemStatusEntity);
         }
         return true;
     }
@@ -41,17 +44,18 @@ public class UserItemStatusService {
         );
     }
 
-    private boolean userItemExists(String userId, String itemId, ItemType itemType){
-        return userItemStatusRepository.existsByUserIdAndItemIdAndItemType(userId, itemId, itemType);
+    private UserItemStatusEntity findBy(String userId, String itemId, ItemType itemType){
+        return userItemStatusRepository.findByUserIdAndItemIdAndItemType(userId, itemId, itemType).orElse(null);
     }
 
-    private UserItemStatusEntity createUserItemStatusEntity (String userId, String itemId, String itemName, ItemType itemType){
+    private UserItemStatusEntity createUserItemStatusEntity (String userId, String itemId, String itemName,
+                                                             ItemType itemType, UserItemStatus userItemStatus) {
         UserItemStatusEntity userItemStatusEntity = userItemStatusRepository.save(UserItemStatusEntity.builder()
                  .userId(userId)
                  .itemId(itemId)
                  .itemName(itemName)
                  .itemType(itemType)
-                 .status(UserItemStatus.VOTED)
+                 .status(userItemStatus)
                  .build());
         return userItemStatusEntity;
     }

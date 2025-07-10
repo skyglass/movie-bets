@@ -7,7 +7,6 @@ import CompleteStep from './CompleteStep'
 import FormStep from './FormStep'
 import SearchStep from './SearchStep'
 import { Navigate } from 'react-router-dom'
-import { isAdmin } from '../misc/Helpers'
 import { useNavigate } from 'react-router-dom'
 import { useKeycloak } from '@react-keycloak/web'
 
@@ -230,7 +229,7 @@ function MovieWizard() {
   }
 
 
-  return keycloak && keycloak.authenticated && isAdmin(keycloak) ? getContent() : <Navigate to='/' />
+  return keycloak && keycloak.authenticated ? getContent() : <Navigate to='/' />
 }
 
 export default MovieWizard

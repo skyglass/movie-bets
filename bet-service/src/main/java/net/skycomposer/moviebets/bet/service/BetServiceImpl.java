@@ -25,6 +25,7 @@ import net.skycomposer.moviebets.bet.exception.*;
 import net.skycomposer.moviebets.common.dto.bet.*;
 import net.skycomposer.moviebets.common.dto.bet.commands.UserItemStatusRequest;
 import net.skycomposer.moviebets.common.dto.bet.events.BetCreatedEvent;
+import net.skycomposer.moviebets.common.dto.item.UserItemStatus;
 import net.skycomposer.moviebets.common.dto.market.MarketOpenStatus;
 import net.skycomposer.moviebets.common.dto.market.MarketResult;
 import net.skycomposer.moviebets.common.dto.market.events.MarketOpenedEvent;
@@ -351,6 +352,7 @@ public class BetServiceImpl implements BetService {
                 .itemName(betData.getResult() == MarketResult.ITEM1_WINS ? betData.getItem1Name() : betData.getItem2Name())
                 .userId(betData.getCustomerId())
                 .itemType(betData.getItemType())
+                .userItemStatus(UserItemStatus.BET_PLACED)
                 .build();
     }
 

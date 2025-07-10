@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.skycomposer.moviebets.common.dto.item.ItemType;
+import net.skycomposer.moviebets.common.dto.item.UserItemStatus;
 
 @Data
 @Builder
@@ -15,4 +16,5 @@ public class UserItemStatusRequest {
     private String itemId;
     private ItemType itemType;
     private String itemName;
+    private UserItemStatus userItemStatus;
 }

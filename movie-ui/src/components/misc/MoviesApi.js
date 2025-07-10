@@ -27,8 +27,14 @@ function saveMovie(movie, token) {
   })
 }
 
+function updateMovie(movie, token) {
+  return instance.post('/api/movie/admin', movie, {
+    headers: { 'Authorization': bearerAuth(token) }
+  })
+}
+
 function deleteMovie(imdbId, token) {
-  return instance.delete(`/api/movie/${imdbId}`, {
+  return instance.delete(`/api/movie/admin/${imdbId}`, {
     headers: { 'Authorization': bearerAuth(token) }
   })
 }

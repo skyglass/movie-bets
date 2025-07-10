@@ -1,6 +1,7 @@
 package net.skycomposer.moviebets.bet.dao.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,8 @@ public interface UserItemStatusRepository extends JpaRepository<UserItemStatusEn
 
     boolean existsByUserIdAndItemIdAndItemType(String userId, String itemId, ItemType itemType);
 
+    Optional<UserItemStatusEntity> findByUserIdAndItemIdAndItemType(String userId, String itemId, ItemType itemType);
+
     @Query("""
         SELECT u FROM UserItemStatusEntity u
         WHERE u.status = :status
@@ -41,7 +44,7 @@ public interface UserItemStatusRepository extends JpaRepository<UserItemStatusEn
                 AND (m.item1Id = u.itemId OR m.item2Id = u.itemId)
           )
     """)
-    List<UserItemStatusEntity> findFirstByStatusAndNoOpenMarketExists(@Param("status") UserItemStatus status, Pageable pageable);
+    List<UserItemStatusEntity> findFirstMatch(@Param("status") UserItemStatus status, Pageable pageable);
 
     @Query("""
         SELECT u FROM UserItemStatusEntity u
@@ -55,8 +58,14 @@ public interface UserItemStatusRepository extends JpaRepository<UserItemStatusEn
                 AND m.itemType = u.itemType
                 AND (m.item1Id = u.itemId OR m.item2Id = u.itemId)
           )
+          AND NOT EXISTS (
+              SELECT 1 FROM UserItemStatusEntity u2
+              WHERE u2.itemType = u.itemType
+                AND u2.itemId = :excludedItemId
+                AND u2.userId = u.userId
+          )      
     """)
-    List<UserItemStatusEntity> findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNotAndNoOpenMarketExists(
+    List<UserItemStatusEntity> findSecondMatch(
             @Param("status") UserItemStatus status,
             @Param("itemType") ItemType itemType,
             @Param("excludedUserId") String excludedUserId,

@@ -29,7 +29,8 @@ function MovieCard({ movie, link, canVote }) {
             userId,
             itemId: movie.imdbId,
             itemType: 'MOVIE',
-            itemName: movie.title
+            itemName: movie.title,
+            userItemStatus: 'VOTED'
         }
 
         try {

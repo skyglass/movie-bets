@@ -30,11 +30,16 @@ function Navbar() {
     return keycloak.authenticated && isAdmin(keycloak) ? { "display": "block" } : { "display": "none" }
   }
 
+  const getRegularUserMenuStyle = () => {
+    return keycloak.authenticated && !isAdmin(keycloak) ? { "display": "block" } : { "display": "none" }
+  }
+
   return (
     <Menu stackable>
       <Container>
         <Menu.Item header>Movies UI</Menu.Item>
         <Menu.Item as={NavLink} end to="/home">Home</Menu.Item>
+        <Menu.Item as={NavLink} end to="/wizard" style={getRegularUserMenuStyle()}>Movie Wizard</Menu.Item>
         <Dropdown item text='Admin' style={getAdminMenuStyle()}>
           <Dropdown.Menu>
             <Dropdown.Item as={NavLink} end to="/movies">Movies</Dropdown.Item>

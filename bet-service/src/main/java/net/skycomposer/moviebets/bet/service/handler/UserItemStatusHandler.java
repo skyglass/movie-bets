@@ -21,7 +21,7 @@ public class UserItemStatusHandler {
 
     @KafkaHandler
     public void handleCommand(@Payload UserItemStatusRequest userItemStatusRequest) {
-        userItemStatusService.placeVote(userItemStatusRequest);
+        userItemStatusService.placeOrUpdateVote(userItemStatusRequest);
     }
 
 

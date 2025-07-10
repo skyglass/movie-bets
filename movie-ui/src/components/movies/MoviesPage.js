@@ -4,7 +4,6 @@ import { handleLogError } from '../misc/Helpers'
 import { moviesApi } from '../misc/MoviesApi'
 import MoviesForm from './MoviesForm'
 import MoviesTable from './MoviesTable'
-import { isAdmin } from '../misc/Helpers'
 import { Navigate } from 'react-router-dom'
 import ConfirmationModal from '../misc/ConfirmationModal'
 import { useKeycloak } from '@react-keycloak/web'
@@ -140,7 +139,7 @@ function MoviesPage() {
     setMovieToBeDeleted(null)
   }
 
-  if (!isAdmin(keycloak)) {
+  if (!(keycloak && keycloak.authenticated)) {
     return <Navigate to='/' />
   }
 

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import net.skycomposer.moviebets.bet.dao.entity.UserItemStatusEntity;
-import net.skycomposer.moviebets.bet.dao.repository.BetRepository;
 import net.skycomposer.moviebets.bet.dao.repository.UserItemStatusRepository;
 import net.skycomposer.moviebets.bet.exception.UserItemStatusRequestDeniedException;
 import net.skycomposer.moviebets.common.dto.bet.UserItemStatusResponse;
@@ -24,26 +23,18 @@ public class UserItemStatusApplicationService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    private final BetRepository betRepository;
-
     private final UserItemStatusRepository userItemStatusRepository;
 
     private final String userItemStatusTopicName;
 
-    private final String betCommandsTopicName;
-
     private final String marketCommandsTopicName;
 
-    public UserItemStatusApplicationService(final BetRepository betRepository,
-                                            final UserItemStatusRepository userItemStatusRepository,
+    public UserItemStatusApplicationService(final UserItemStatusRepository userItemStatusRepository,
                                             final KafkaTemplate<String, Object> kafkaTemplate,
-                                            final @Value("${bet.commands.topic.name}") String betCommandsTopicName,
                                             final @Value("${user.item-status.topic.name}") String userItemStatusTopicName,
                                             final @Value("${market.commands.topic.name}") String marketCommandsTopicName) {
-        this.betRepository = betRepository;
         this.userItemStatusRepository = userItemStatusRepository;
         this.kafkaTemplate = kafkaTemplate;
-        this.betCommandsTopicName = betCommandsTopicName;
         this.userItemStatusTopicName = userItemStatusTopicName;
         this.marketCommandsTopicName = marketCommandsTopicName;
     }
@@ -63,13 +54,13 @@ public class UserItemStatusApplicationService {
 
     @Transactional
     public void openMarket(MarketOpenCheckCommand marketOpenCheckCommand) {
-        List<UserItemStatusEntity> firstUserItemStatusList = userItemStatusRepository.findFirstByStatusAndNoOpenMarketExists(UserItemStatus.VOTED, PageRequest.of(0, 1));
+        List<UserItemStatusEntity> firstUserItemStatusList = userItemStatusRepository.findFirstMatch(UserItemStatus.VOTED, PageRequest.of(0, 1));
         if (firstUserItemStatusList.isEmpty()) {
             return;
         }
         UserItemStatusEntity firstUserItemStatus = firstUserItemStatusList.getFirst();
         List<UserItemStatusEntity> secondUserItemStatusList = userItemStatusRepository
-                . findFirstByStatusAndItemTypeAndUserIdNotAndItemIdNotAndNoOpenMarketExists(
+                .findSecondMatch(
                         UserItemStatus.VOTED,
                         firstUserItemStatus.getItemType(),
                         firstUserItemStatus.getUserId(),
@@ -94,11 +85,6 @@ public class UserItemStatusApplicationService {
                 .build();
         //The key doesn't matter for the new market: sequential processing is not necessary
         kafkaTemplate.send(marketCommandsTopicName, firstUserItemStatus.getId().toString(), userBetPairOpenMarketCommand);
-        kafkaTemplate.send(betCommandsTopicName, marketOpenCheckCommand.getCheckId().toString(),
-                MarketOpenCheckCommand.builder()
-                        .checkId(marketOpenCheckCommand.getCheckId())
-                        .build());
-
     }
 
 }
